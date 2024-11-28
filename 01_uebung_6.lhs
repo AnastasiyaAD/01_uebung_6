@@ -253,7 +253,25 @@
 > toListMT3 :: (Defaultable e) => MT3 e -> [e]
 > toListMT3 (MT3 f) = filter f defaultValue
 
+> -------------------------------------------------------------------- A.3 --------------------------------------------------------------
+> istElement :: Menge m => Char -> m -> Bool
+> istElement c m
+>       | not (isInt [c] || isMChar [c]) = error "Invalid character" -- istKeinGueltigerMengenwert "" -> • Could not deduce (Menge m0) from the context: Menge bound by the type signature for: istKeinGueltigerMengenwert :: ...
+>       | otherwise = isInString c (zeige m)
 
+
+> istKeinElement :: Menge m => Char -> m -> Bool
+> istKeinElement c m = not (istElement c m)
+
+
+> isInString :: Char -> String -> Bool
+> isInString char str = elem char str
+
+> isInt :: String -> Bool
+> isInt str = all (`elem` ['1' .. '9']) str
+
+> isMChar :: String -> Bool
+> isMChar str = all (`elem` ['a'..'z'] ++ ['A'..'Z']) str
 
 > main = do
 >   putStrLn "------------------------------Char------------------------------"
@@ -624,3 +642,25 @@
 >   putStrLn $ "sindQuerUeberlappend      {1, 2} {1}: " ++ (show $ istEchteObermenge (MT3  ab3') (MT3 a3'))
 >   putStrLn ""
 >   putStrLn ""
+>   putStrLn "------------------------------A.3------------------------------"
+>   let mt1 = MT1 ['a', 'b', 'c']
+>       mt2 = VerlaengereUm 'a' ( VerlaengereUm 'b' ( VerlaengereUm 'c' Nichts))
+>       mt3 = MT3 (\e -> if e == 'a' || e == 'b' || e == 'c' then True else False)
+>   putStrLn "------------------------------MT1------------------------------"
+>   putStrLn $ "istElement      'b' {'a', 'b', 'c'}: " ++ (show $ istElement 'b' mt1)
+>   putStrLn $ "istElement      'd' {'a', 'b', 'c'}: " ++ (show $ istElement 'd' mt1)
+>   putStrLn ""
+>   putStrLn $ "istKeinElement  'b' {'a', 'b', 'c'}: " ++ (show $ istKeinElement 'b' mt1)
+>   putStrLn $ "istKeinElement  'd' {'a', 'b', 'c'}: " ++ (show $ istKeinElement 'd' mt1)
+>   putStrLn "------------------------------MT2------------------------------"
+>   putStrLn $ "istElement      'b' {'a', 'b', 'c'}: " ++ (show $ istElement 'b' mt2)
+>   putStrLn $ "istElement      'd' {'a', 'b', 'c'}: " ++ (show $ istElement 'd' mt2)
+>   putStrLn ""
+>   putStrLn $ "istKeinElement  'b' {'a', 'b', 'c'}: " ++ (show $ istKeinElement 'b' mt2)
+>   putStrLn $ "istKeinElement  'd' {'a', 'b', 'c'}: " ++ (show $ istKeinElement 'd' mt2)
+>   putStrLn "------------------------------MT3------------------------------"
+>   putStrLn $ "istElement      'b' {'a', 'b', 'c'}: " ++ (show $ istElement 'b' mt3)
+>   putStrLn $ "istElement      'd' {'a', 'b', 'c'}: " ++ (show $ istElement 'd' mt3)
+>   putStrLn ""
+>   putStrLn $ "istKeinElement  'b' {'a', 'b', 'c'}: " ++ (show $ istKeinElement 'b' mt3)
+>   putStrLn $ "istKeinElement  'd' {'a', 'b', 'c'}: " ++ (show $ istKeinElement 'd' mt3)
