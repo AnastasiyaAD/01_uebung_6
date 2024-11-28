@@ -6,6 +6,16 @@
 >              | VerlaengereUm e (MT2 e)
 > newtype MT3 e = MT3 (e -> Bool)
 
+> -- Klasse Defaultable: Definiert eine Typklasse für Typen, die einen Standardwert (eine Liste von Werten) liefern können.
+> class Defaultable a where
+>   defaultValue :: [a] -- liefert eine Liste von Standardwerten des Typs 'a'.
+
+> instance Defaultable Int where
+>   defaultValue = [(-100)..100]
+
+> instance Defaultable Char where
+>   defaultValue = ['a'..'z'] ++ ['A'..'Z']
+
 > class Menge m where
 >   leereMenge :: m
 >   allMenge :: m
@@ -198,6 +208,52 @@
 > toListMT2' :: MT2 e -> [e]
 > toListMT2' (VerlaengereUm z n) = toListMT2' n ++ [z]
 > toListMT2' (Nichts) = []
+
+> -------------------------------------------------------------------- MT3 --------------------------------------------------------------
+> --istMenge muss nicht ueberschrieben werden, weil es nicht moeglich ist, dass ein MT3 nicht eine Menge sei
+
+> instance Menge (MT3 Char) where
+>   leereMenge = MT3 (\_ -> False)
+>   allMenge = MT3 (\_ -> True )
+>   vereinige = vereinigeMT3
+>   schneide = schneideMT3
+>   zieheab = zieheabMT3
+>   istTeilmenge = istTeilmengeMT3
+>   zeige = zeigeMT3
+
+
+> instance Menge (MT3 Int) where
+>   leereMenge = MT3 (\_ -> False)
+>   allMenge = MT3 (\_ -> True )
+>   vereinige = vereinigeMT3
+>   schneide = schneideMT3
+>   zieheab = zieheabMT3
+>   istTeilmenge = istTeilmengeMT3
+>   zeige = zeigeMT3
+
+
+> vereinigeMT3 :: Eq e => MT3 e -> MT3 e -> MT3 e
+> vereinigeMT3 (MT3 f1) (MT3 f2) = MT3 $ \elem -> f1 elem || f2 elem
+
+> schneideMT3 :: Eq e => MT3 e -> MT3 e -> MT3 e
+> schneideMT3 (MT3 f1) (MT3 f2) = MT3 $ \elem -> f1 elem && f2 elem
+
+> zieheabMT3 :: Eq e => MT3 e -> MT3 e -> MT3 e
+> zieheabMT3(MT3 f1) (MT3 f2) = MT3 $ \elem -> f1 elem && (not . f2) elem
+
+> istTeilmengeMT3 :: (Eq e, Defaultable e) => MT3 e -> MT3 e -> Bool
+> istTeilmengeMT3 m1 (MT3 f) =
+>         let elems1 = toListMT3 m1
+>         in all f elems1
+
+> zeigeMT3 m = "{" ++ (formatElems . toListMT3) m ++ "}"
+
+> -- Diese Funktion wandelt einen Wert des Typs MT3 in eine Liste vom Typ e um.
+> -- Sie benötigt die Typklassebeschränkung (Defaultable e), um sicherzustellen, dass der Typ e eine defaultValue-Funktion besitzt.
+> toListMT3 :: (Defaultable e) => MT3 e -> [e]
+> toListMT3 (MT3 f) = filter f defaultValue
+
+
 
 > main = do
 >   putStrLn "------------------------------Char------------------------------"
@@ -441,5 +497,130 @@
 >   putStrLn $ "sindQuerUeberlappend {1, 2, 3} {2, 1, 4}: " ++ (show $ sindQuerUeberlappend (createMT2 [1, 2, 3]) (createMT2 [2, 1, 4 :: Int]))
 >   putStrLn $ "sindQuerUeberlappend    {1} {1, 2}: " ++ (show $ sindQuerUeberlappend (createMT2    [1]) (createMT2 [1, 2 :: Int]))
 >   putStrLn $ "sindQuerUeberlappend    {1, 2} {1}: " ++ (show $ sindQuerUeberlappend (createMT2 [1, 2]) (createMT2    [1 :: Int]))
+>   putStrLn ""
+>   putStrLn ""
+>   putStrLn "------------------------------MT3------------------------------"
+>   let a3  = \e -> if e == 'a'                          then True else False
+>       b3  = \e -> if e == 'b'                          then True else False
+>       ab3 = \e -> if e == 'a' || e == 'b'              then True else False
+>       ba3 = \e -> if e == 'b' || e == 'a'              then True else False
+>       abc3 = \e -> if e == 'a' || e == 'b' || e == 'c' then True else False
+>       def3 = \e -> if e == 'd' || e == 'e' || e == 'f' then True else False
+>       bad3 = \e -> if e == 'b' || e == 'a' || e == 'd' then True else False
+>   putStrLn ""
+>   putStrLn ""
+>   putStrLn "------------------------------Char------------------------------"
+>   putStrLn ""
+>   putStrLn $ "leereMenge: " ++ zeige (leereMenge :: MT3 Char)
+>   putStrLn $ "allMenge  : " ++ zeige (allMenge   :: MT3 Char)
+>   putStrLn ""
+>   putStrLn "istMenge ist die Protoimplementierung"
+>   putStrLn ""
+>   putStrLn $ "vereinige    {} {'a'}: " ++ (zeige . vereinige leereMenge $ MT3 a3)
+>   putStrLn $ "vereinige {'a'} {'a'}: " ++ (zeige $ vereinige (MT3 a3) (MT3 a3))
+>   putStrLn $ "vereinige {'a'} {'b'}: " ++ (zeige $ vereinige (MT3 a3) (MT3 b3))
+>   putStrLn ""
+>   putStrLn $ "schneide         {} {'a'}: " ++ (zeige . schneide leereMenge $ MT3 a3)
+>   putStrLn $ "schneide      {'a'} {'a'}: " ++ (zeige $ schneide (MT3 a3) (MT3  a3))
+>   putStrLn $ "schneide {'a'} {'a', 'b'}: " ++ (zeige $ schneide (MT3 a3) (MT3 ab3))
+>   putStrLn ""
+>   putStrLn $ "zieheab         {} {'a'}: " ++ (zeige . zieheab leereMenge $ MT3 a3)
+>   putStrLn $ "zieheab      {'a'} {'a'}: " ++ (zeige $ zieheab (MT3  a3) (MT3 a3))
+>   putStrLn $ "zieheab {'a', 'b'} {'a'}: " ++ (zeige $ zieheab (MT3 ab3) (MT3 a3))
+>   putStrLn ""
+>   putStrLn $ "komplementiere . zieheab allMenge $ {'a'}: " ++ (zeige . komplementiere . zieheab allMenge $ MT3 a3)
+>   putStrLn ""
+>   putStrLn $ "sindGleich           {'a'} {'a'}: " ++ (show $ sindGleich (MT3  a3) (MT3  a3))
+>   putStrLn $ "sindGleich           {'a'} {'b'}: " ++ (show $ sindGleich (MT3  a3) (MT3  b3))
+>   putStrLn $ "sindGleich {'a', 'b'} {'b', 'a'}: " ++ (show $ sindGleich (MT3 ab3) (MT3 ba3))
+>   putStrLn ""
+>   putStrLn $ "istTeilmenge           {'a'} {'a'}: " ++ (show $ istTeilmenge (MT3  a3) (MT3  a3))
+>   putStrLn $ "istTeilmenge {'a', 'b'} {'b', 'a'}: " ++ (show $ istTeilmenge (MT3 ab3) (MT3 ba3))
+>   putStrLn $ "istTeilmenge      {'a'} {'a', 'b'}: " ++ (show $ istTeilmenge (MT3  a3) (MT3 ab3))
+>   putStrLn $ "istTeilmenge      {'a', 'b'} {'a'}: " ++ (show $ istTeilmenge (MT3 ab3) (MT3  a3))
+>   putStrLn ""
+>   putStrLn $ "istEchteTeilmenge           {'a'} {'a'}: " ++ (show $ istEchteTeilmenge (MT3  a3) (MT3  a3))
+>   putStrLn $ "istEchteTeilmenge {'a', 'b'} {'b', 'a'}: " ++ (show $ istEchteTeilmenge (MT3 ab3) (MT3 ba3))
+>   putStrLn $ "istEchteTeilmenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteTeilmenge (MT3  a3) (MT3 ab3))
+>   putStrLn $ "istEchteTeilmenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteTeilmenge (MT3 ab3) (MT3  a3))
+>   putStrLn ""
+>   putStrLn $ "istObermenge           {'a'} {'a'}: " ++ (show $ istObermenge (MT3  a3) (MT3  a3))
+>   putStrLn $ "istObermenge {'a', 'b'} {'b', 'a'}: " ++ (show $ istObermenge (MT3 ab3) (MT3 ba3))
+>   putStrLn $ "istObermenge      {'a'} {'a', 'b'}: " ++ (show $ istObermenge (MT3  a3) (MT3 ab3))
+>   putStrLn $ "istObermenge      {'a', 'b'} {'a'}: " ++ (show $ istObermenge (MT3 ab3) (MT3  a3))
+>   putStrLn ""
+>   putStrLn $ "istEchteObermenge           {'a'} {'a'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3  a3))
+>   putStrLn $ "istEchteObermenge {'a', 'b'} {'b', 'a'}: " ++ (show $ istEchteObermenge (MT3 ab3) (MT3 ba3))
+>   putStrLn $ "istEchteObermenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 ab3))
+>   putStrLn $ "istEchteObermenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT3 ab3) (MT3  a3))
+>   putStrLn ""
+>   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 ab3))
+>   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ istEchteObermenge (MT3  abc3) (MT3  def3))
+>   putStrLn ""
+>   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 a3))
+>   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ istEchteObermenge (MT3  abc3) (MT3  bad3))
+>   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 ab3))
+>   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT3  ab3) (MT3 a3))
+>   putStrLn ""
+>   putStrLn ""
+>   putStrLn "------------------------------Int------------------------------"
+>   let a3'  = \e -> if e == '1'                             then True else False
+>       b3'  = \e -> if e == '2'                             then True else False
+>       ab3' = \e -> if e == '1' || e == '2'                 then True else False
+>       ba3' = \e -> if e == '2' || e == '1'                 then True else False
+>       abc3' = \e -> if e == '1' || e == '2' || e == '3'    then True else False
+>       def3' = \e -> if e == '4' || e == '5' || e == '6'    then True else False
+>       bad3' = \e -> if e == '2' || e == '1' || e == '4'    then True else False
+>   putStrLn ""
+>   putStrLn $ "leereMenge: " ++ zeige (leereMenge :: MT3 Char)
+>   putStrLn $ "allMenge  : " ++ zeige (allMenge   :: MT3 Char)
+>   putStrLn ""
+>   putStrLn "istMenge ist die Protoimplementierung"
+>   putStrLn ""
+>   putStrLn $ "vereinige    {} {'1'}: " ++ (zeige . vereinige leereMenge $ MT3 a3')
+>   putStrLn $ "vereinige {'1'} {'1'}: " ++ (zeige $ vereinige (MT3 a3') (MT3 a3'))
+>   putStrLn $ "vereinige {'1'} {'2'}: " ++ (zeige $ vereinige (MT3 a3') (MT3 b3'))
+>   putStrLn ""
+>   putStrLn $ "schneide         {} {1}: " ++ (zeige . schneide leereMenge $ MT3 a3')
+>   putStrLn $ "schneide      {1} {1}: " ++ (zeige $ schneide (MT3 a3') (MT3  a3'))
+>   putStrLn $ "schneide {1} {1, 2}: " ++ (zeige $ schneide (MT3 a3') (MT3 ab3'))
+>   putStrLn ""
+>   putStrLn $ "zieheab         {} {1}: " ++ (zeige . zieheab leereMenge $ MT3 a3')
+>   putStrLn $ "zieheab      {1} {1}: " ++ (zeige $ zieheab (MT3  a3') (MT3 a3'))
+>   putStrLn $ "zieheab {1, 2} {1}: " ++ (zeige $ zieheab (MT3 ab3') (MT3 a3'))
+>   putStrLn ""
+>   putStrLn $ "komplementiere . zieheab allMenge $ {1}: " ++ (zeige . komplementiere . zieheab allMenge $ MT3 a3')
+>   putStrLn ""
+>   putStrLn $ "sindGleich           {1} {1}: " ++ (show $ sindGleich (MT3  a3') (MT3  a3'))
+>   putStrLn $ "sindGleich           {1} {2}: " ++ (show $ sindGleich (MT3  a3') (MT3  b3'))
+>   putStrLn $ "sindGleich {1, 2} {2, 1}: " ++ (show $ sindGleich (MT3 ab3') (MT3 ba3'))
+>   putStrLn ""
+>   putStrLn $ "istTeilmenge           {1} {1}: " ++ (show $ istTeilmenge (MT3  a3') (MT3  a3'))
+>   putStrLn $ "istTeilmenge {1, 2} {2, 1}: " ++ (show $ istTeilmenge (MT3 ab3') (MT3 ba3'))
+>   putStrLn $ "istTeilmenge      {1} {1, 2}: " ++ (show $ istTeilmenge (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "istTeilmenge      {1, 2} {1}: " ++ (show $ istTeilmenge (MT3 ab3') (MT3  a3'))
+>   putStrLn ""
+>   putStrLn $ "istEchteTeilmenge           {1} {1}: " ++ (show $ istEchteTeilmenge (MT3  a3') (MT3  a3'))
+>   putStrLn $ "istEchteTeilmenge {1, 2} {2, 1}: " ++ (show $ istEchteTeilmenge (MT3 ab3') (MT3 ba3'))
+>   putStrLn $ "istEchteTeilmenge      {1} {1, 2}: " ++ (show $ istEchteTeilmenge (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "istEchteTeilmenge      {1, 2} {1}: " ++ (show $ istEchteTeilmenge (MT3 ab3') (MT3  a3'))
+>   putStrLn ""
+>   putStrLn $ "istObermenge           {1} {1}: " ++ (show $ istObermenge (MT3  a3') (MT3  a3'))
+>   putStrLn $ "istObermenge {1, 2} {2, 1}: " ++ (show $ istObermenge (MT3 ab3') (MT3 ba3'))
+>   putStrLn $ "istObermenge      {1} {1, 2}: " ++ (show $ istObermenge (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "istObermenge      {1, 2} {1}: " ++ (show $ istObermenge (MT3 ab3') (MT3  a3'))
+>   putStrLn ""
+>   putStrLn $ "istEchteObermenge           {1} {1}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3  a3'))
+>   putStrLn $ "istEchteObermenge {1, 2} {2, 1}: " ++ (show $ istEchteObermenge (MT3 ab3') (MT3 ba3'))
+>   putStrLn $ "istEchteObermenge      {1} {1, 2}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "istEchteObermenge      {1, 2} {1}: " ++ (show $ istEchteObermenge (MT3 ab3') (MT3  a3'))
+>   putStrLn ""
+>   putStrLn $ "sindElementeFremd           {1} {1, 2}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "sindElementeFremd {1, 2, 3} {4, 5, 6}: " ++ (show $ istEchteObermenge (MT3  abc3') (MT3  def3'))
+>   putStrLn ""
+>   putStrLn $ "sindQuerUeberlappend           {1} {1}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 a3'))
+>   putStrLn $ "sindQuerUeberlappend {1, 2, 3} {2, 1, 4}: " ++ (show $ istEchteObermenge (MT3  abc3') (MT3  bad3'))
+>   putStrLn $ "sindQuerUeberlappend      {1} {1, 2}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "sindQuerUeberlappend      {1, 2} {1}: " ++ (show $ istEchteObermenge (MT3  ab3') (MT3 a3'))
 >   putStrLn ""
 >   putStrLn ""
