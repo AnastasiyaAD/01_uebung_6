@@ -45,6 +45,7 @@
 >   nichtImplementierbar fehlermeldung = error fehlermeldung
 >   zeige _ = error "zeige: Diese Funktion muss in einer Instanz implementiert werden."
 > -------------------------------------------------------------------- A.2 --------------------------------------------------------------
+> -------------------------------------------------------------------- MT1 --------------------------------------------------------------
 > instance Menge (MT1 Char) where
 >   leereMenge = leereMengeMT1
 >   allMenge = MT1 (['a'..'z'] ++ ['A'..'Z'])
@@ -99,6 +100,8 @@
 > zeigeMT1 (MT1 elems) = "{" ++ formatElems elems ++ "}"
 
 
+
+
 > -- Fehlermeldung fuer wenn ein oder mehrere Argumente nicht Menge sind.
 > fehlermeldung :: a
 > fehlermeldung = error "Argument muss Menge sein (keine Duplikate)"
@@ -128,6 +131,73 @@
 > formatElems [e]    = show e
 > formatElems (e:es) = show e ++ ", " ++ formatElems es
 
+> -------------------------------------------------------------------- MT2 --------------------------------------------------------------
+> instance Menge (MT2 Char) where
+>   leereMenge = Nichts
+>   allMenge = createMT2 (['a'..'z'] ++ ['A'..'Z'])
+>   istMenge = istMengeMT2
+>   vereinige = vereinigeMT2
+>   schneide = schneideMT2
+>   zieheab = zieheabMT2
+>   istTeilmenge = istTeilmengeMT2
+>   zeige = zeigeMT2
+
+
+> instance Menge (MT2 Int) where
+>   leereMenge = Nichts
+>   allMenge = createMT2 [(-100)..100]
+>   istMenge = istMengeMT2
+>   vereinige = vereinigeMT2
+>   schneide = schneideMT2
+>   zieheab = zieheabMT2
+>   istTeilmenge = istTeilmengeMT2
+>   zeige = zeigeMT2
+
+
+
+> istMengeMT2 :: (Eq e) => MT2 e -> Bool
+> istMengeMT2 Nichts = True
+> istMengeMT2 m  = noDuplicates (toListMT2 m) 
+
+> vereinigeMT2 :: Eq e => MT2 e -> MT2 e -> MT2 e
+> vereinigeMT2 m1 m2
+>       | istMengeMT2 m1 && istMengeMT2 m2 = createMT2 . nub $ toListMT2 m1 ++ toListMT2 m2
+>       | otherwise                        = fehlermeldung
+
+> schneideMT2 :: Eq e => MT2 e -> MT2 e -> MT2 e
+> schneideMT2 m1 m2
+>       | istMengeMT2 m1 && istMengeMT2 m2 = createMT2 . dup $ toListMT2 m1 ++ toListMT2 m2
+>       | otherwise                        = fehlermeldung
+
+> zieheabMT2 :: Eq e => MT2 e -> MT2 e -> MT2 e
+> zieheabMT2 m1 m2
+>       | istMengeMT2 m1 && istMengeMT2 m2 = createMT2 [e | e <- toListMT2 m1, e `notElem` toListMT2 m2]
+>       | otherwise                        = fehlermeldung
+
+
+> istTeilmengeMT2 :: Eq e => MT2 e -> MT2 e -> Bool
+> istTeilmengeMT2 m1 m2
+>       | istMengeMT2 m1 && istMengeMT2 m2 = all (`elem` toListMT2 m2) (toListMT2 m1)
+>       | otherwise                        = fehlermeldung
+
+> zeigeMT2 :: Show e => MT2 e -> MengeAlsZeichenreihe
+> zeigeMT2 elems = "{" ++ formatElems (toListMT2 elems) ++ "}"
+
+
+
+
+> createMT2 :: [e] -> MT2 e
+> createMT2 [] = Nichts
+> createMT2 [x] = VerlaengereUm x Nichts
+> createMT2 (x:xs) = VerlaengereUm x (createMT2(xs))
+
+
+> toListMT2 :: MT2 e -> [e]
+> toListMT2 x = reverse (toListMT2' x)
+
+> toListMT2' :: MT2 e -> [e]
+> toListMT2' (VerlaengereUm z n) = toListMT2' n ++ [z]
+> toListMT2' (Nichts) = []
 
 > main = do
 >   putStrLn "------------------------------Char------------------------------"
@@ -248,3 +318,128 @@
 >   putStrLn $ "sindQuerUeberlappend {1, 2, 3} {2, 1, 4}: " ++ (show $ sindQuerUeberlappend (MT1 [1, 2, 3]) (MT1 [2, 1, 4 :: Int]))
 >   putStrLn $ "sindQuerUeberlappend    {1} {1, 2}: " ++ (show $ sindQuerUeberlappend (MT1    [1]) (MT1 [1, 2 :: Int]))
 >   putStrLn $ "sindQuerUeberlappend    {1, 2} {1}: " ++ (show $ sindQuerUeberlappend (MT1 [1, 2]) (MT1    [1 :: Int]))
+>   putStrLn ""
+>   putStrLn ""
+>   putStrLn "------------------------------MT2------------------------------"
+>   putStrLn ""
+>   putStrLn ""
+>   putStrLn "------------------------------Char------------------------------"
+>   putStrLn ""
+>   putStrLn $ "leereMenge: " ++ zeige (leereMenge :: MT2 Char)
+>   putStrLn $ "allMenge  : " ++ zeige (allMenge   :: MT2 Char)
+>   putStrLn ""
+>   putStrLn $ "istMenge         {}: " ++ (show $ istMenge (leereMenge :: MT2 Char))
+>   putStrLn $ "istMenge {'a', 'a'}: " ++ (show $ istMenge $ createMT2 "aa")
+>   putStrLn $ "istMenge {'a', 'b'}: " ++ (show $ istMenge $ createMT2 "ab")
+>   putStrLn ""
+>   putStrLn $ "vereinige    {} {'a'}: " ++ (zeige . vereinige leereMenge $ createMT2 "a")
+>   putStrLn $ "vereinige {'a'} {'a'}: " ++ (zeige $ vereinige (createMT2 "a") (createMT2 "a"))
+>   putStrLn $ "vereinige {'a'} {'b'}: " ++ (zeige $ vereinige (createMT2 "a") (createMT2 "b"))
+>   putStrLn ""
+>   putStrLn $ "schneide         {} {'a'}: " ++ (zeige . schneide leereMenge $ createMT2 "a")
+>   putStrLn $ "schneide      {'a'} {'a'}: " ++ (zeige $ schneide (createMT2 "a") (createMT2 "a"))
+>   putStrLn $ "schneide {'a'} {'a', 'b'}: " ++ (zeige $ schneide (createMT2 "a") (createMT2 "ab"))
+>   putStrLn ""
+>   putStrLn $ "zieheab         {} {'a'}: " ++ (zeige . zieheab leereMenge $ createMT2 "a")
+>   putStrLn $ "zieheab      {'a'} {'a'}: " ++ (zeige $ zieheab (createMT2 "a") (createMT2 "a"))
+>   putStrLn $ "zieheab {'a', 'b'} {'a'}: " ++ (zeige $ zieheab (createMT2 "ab") (createMT2 "a"))
+>   putStrLn ""
+>   putStrLn $ "komplementiere . zieheab allMenge $ {'a'}: " ++ (zeige . komplementiere . zieheab allMenge $ createMT2 "a")
+>   putStrLn ""
+>   putStrLn $ "sindGleich           {'a'} {'a'}: " ++ (show $ sindGleich (createMT2  "a") (createMT2  "a"))
+>   putStrLn $ "sindGleich           {'a'} {'b'}: " ++ (show $ sindGleich (createMT2  "a") (createMT2  "b"))
+>   putStrLn $ "sindGleich {'a', 'b'} {'b', 'a'}: " ++ (show $ sindGleich (createMT2 "ab") (createMT2 "ba"))
+>   putStrLn ""
+>   putStrLn $ "sindUngleich           {'a'} {'a'}: " ++ (show $ sindUngleich (createMT2  "a") (createMT2  "a"))
+>   putStrLn $ "sindUngleich           {'a'} {'b'}: " ++ (show $ sindUngleich (createMT2  "a") (createMT2  "b"))
+>   putStrLn $ "sindUngleich {'a', 'b'} {'b', 'a'}: " ++ (show $ sindUngleich (createMT2 "ab") (createMT2 "ba"))
+>   putStrLn ""
+>   putStrLn $ "istTeilmenge           {'a'} {'a'}: " ++ (show $ istTeilmenge (createMT2  "a") (createMT2  "a"))
+>   putStrLn $ "istTeilmenge {'a', 'b'} {'b', 'a'}: " ++ (show $ istTeilmenge (createMT2 "ab") (createMT2 "ba"))
+>   putStrLn $ "istTeilmenge      {'a'} {'a', 'b'}: " ++ (show $ istTeilmenge (createMT2  "a") (createMT2 "ab"))
+>   putStrLn $ "istTeilmenge      {'a', 'b'} {'a'}: " ++ (show $ istTeilmenge (createMT2 "ab") (createMT2  "a"))
+>   putStrLn ""
+>   putStrLn $ "istEchteTeilmenge           {'a'} {'a'}: " ++ (show $ istEchteTeilmenge (createMT2  "a") (createMT2  "a"))
+>   putStrLn $ "istEchteTeilmenge {'a', 'b'} {'b', 'a'}: " ++ (show $ istEchteTeilmenge (createMT2 "ab") (createMT2 "ba"))
+>   putStrLn $ "istEchteTeilmenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteTeilmenge (createMT2  "a") (createMT2 "ab"))
+>   putStrLn $ "istEchteTeilmenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteTeilmenge (createMT2 "ab") (createMT2  "a"))
+>   putStrLn ""
+>   putStrLn $ "istObermenge           {'a'} {'a'}: " ++ (show $ istObermenge (createMT2  "a") (createMT2  "a"))
+>   putStrLn $ "istObermenge {'a', 'b'} {'b', 'a'}: " ++ (show $ istObermenge (createMT2 "ab") (createMT2 "ba"))
+>   putStrLn $ "istObermenge      {'a'} {'a', 'b'}: " ++ (show $ istObermenge (createMT2  "a") (createMT2 "ab"))
+>   putStrLn $ "istObermenge      {'a', 'b'} {'a'}: " ++ (show $ istObermenge (createMT2 "ab") (createMT2  "a"))
+>   putStrLn ""
+>   putStrLn $ "istEchteObermenge           {'a'} {'a'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2  "a"))
+>   putStrLn $ "istEchteObermenge {'a', 'b'} {'b', 'a'}: " ++ (show $ istEchteObermenge (createMT2 "ab") (createMT2 "ba"))
+>   putStrLn $ "istEchteObermenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2 "ab"))
+>   putStrLn $ "istEchteObermenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (createMT2 "ab") (createMT2  "a"))
+>   putStrLn ""
+>   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2  "ab"))
+>   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ istEchteObermenge (createMT2 "abc") (createMT2 "def"))
+>   putStrLn ""
+>   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2  "a"))
+>   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ istEchteObermenge (createMT2 "abc") (createMT2 "bad"))
+>   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2 "ab"))
+>   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (createMT2 "ab") (createMT2  "a"))
+>   putStrLn ""
+>   putStrLn ""
+>   putStrLn "------------------------------Int------------------------------"
+>   putStrLn ""
+>   putStrLn $ "leereMenge: " ++ zeige (leereMenge :: MT2 Int)
+>   putStrLn $ "allMenge  : " ++ zeige (allMenge   :: MT2 Int)
+>   putStrLn ""
+>   putStrLn $ "istMenge     {}: " ++ (show $ istMenge (leereMenge :: MT2 Int))
+>   putStrLn $ "istMenge {1, 1}: " ++ (show $ istMenge $ createMT2 [1, 1 :: Int])
+>   putStrLn $ "istMenge {1, 2}: " ++ (show $ istMenge $ createMT2 [1, 2 :: Int])
+>   putStrLn ""
+>   putStrLn $ "vereinige  {} {1}: " ++ (zeige . vereinige leereMenge $ createMT2 [1 :: Int])
+>   putStrLn $ "vereinige {1} {1}: " ++ (zeige $ vereinige (createMT2 [1]) (createMT2 [1 :: Int]))
+>   putStrLn $ "vereinige {1} {2}: " ++ (zeige $ vereinige (createMT2 [1]) (createMT2 [2 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "schneide     {} {1}: " ++ (zeige . schneide leereMenge $ createMT2 [1 :: Int])
+>   putStrLn $ "schneide    {1} {1}: " ++ (zeige $ schneide (createMT2 [1]) (createMT2    [1 :: Int]))
+>   putStrLn $ "schneide {1} {1, 2}: " ++ (zeige $ schneide (createMT2 [1]) (createMT2 [1, 2 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "zieheab     {} {1}: " ++ (zeige . zieheab leereMenge $ createMT2 [1 :: Int])
+>   putStrLn $ "zieheab    {1} {1}: " ++ (zeige $ zieheab (createMT2    [1]) (createMT2 [1 :: Int]))
+>   putStrLn $ "zieheab {1, 2} {1}: " ++ (zeige $ zieheab (createMT2 [1, 2]) (createMT2 [1 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "komplementiere . zieheab allMenge $ {1}: " ++ (zeige . komplementiere . zieheab allMenge $ createMT2 [1 :: Int])
+>   putStrLn ""
+>   putStrLn $ "sindGleich       {1} {1}: " ++ (show $ sindGleich (createMT2    [1]) (createMT2    [1 :: Int]))
+>   putStrLn $ "sindGleich       {1} {2}: " ++ (show $ sindGleich (createMT2    [1]) (createMT2    [2 :: Int]))
+>   putStrLn $ "sindGleich {1, 2} {2, 1}: " ++ (show $ sindGleich (createMT2 [1, 2]) (createMT2 [2, 1 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "sindUngleich       {1} {1}: " ++ (show $ sindUngleich (createMT2    [1]) (createMT2    [1 :: Int]))
+>   putStrLn $ "sindUngleich       {1} {2}: " ++ (show $ sindUngleich (createMT2    [1]) (createMT2    [2 :: Int]))
+>   putStrLn $ "sindUngleich {1, 2} {2, 1}: " ++ (show $ sindUngleich (createMT2 [1, 2]) (createMT2 [2, 1 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "istTeilmenge       {1} {1}: " ++ (show $ istTeilmenge (createMT2    [1]) (createMT2    [1 :: Int]))
+>   putStrLn $ "istTeilmenge {1, 2} {2, 1}: " ++ (show $ istTeilmenge (createMT2 [1, 2]) (createMT2 [2, 1 :: Int]))
+>   putStrLn $ "istTeilmenge    {1} {1, 2}: " ++ (show $ istTeilmenge (createMT2    [1]) (createMT2 [1, 2 :: Int]))
+>   putStrLn $ "istTeilmenge    {1, 2} {1}: " ++ (show $ istTeilmenge (createMT2 [1, 2]) (createMT2    [1 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "istEchteTeilmenge       {1} {1}: " ++ (show $ istEchteTeilmenge (createMT2    [1]) (createMT2    [1 :: Int]))
+>   putStrLn $ "istEchteTeilmenge {1, 2} {2, 1}: " ++ (show $ istEchteTeilmenge (createMT2 [1, 2]) (createMT2 [2, 1 :: Int]))
+>   putStrLn $ "istEchteTeilmenge    {1} {1, 2}: " ++ (show $ istEchteTeilmenge (createMT2    [1]) (createMT2 [1, 2 :: Int]))
+>   putStrLn $ "istEchteTeilmenge    {1, 2} {1}: " ++ (show $ istEchteTeilmenge (createMT2 [1, 2]) (createMT2    [1 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "istObermenge       {1} {1}: " ++ (show $ istObermenge (createMT2    [1]) (createMT2    [1 :: Int]))
+>   putStrLn $ "istObermenge {1, 2} {2, 1}: " ++ (show $ istObermenge (createMT2 [1, 2]) (createMT2 [2, 1 :: Int]))
+>   putStrLn $ "istObermenge    {1} {1, 2}: " ++ (show $ istObermenge (createMT2    [1]) (createMT2 [1, 2 :: Int]))
+>   putStrLn $ "istObermenge    {1, 2} {1}: " ++ (show $ istObermenge (createMT2 [1, 2]) (createMT2    [1 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "istEchteObermenge       {1} {1}: " ++ (show $ istEchteObermenge (createMT2    [1]) (createMT2    [1 :: Int]))
+>   putStrLn $ "istEchteObermenge {1, 2} {2, 1}: " ++ (show $ istEchteObermenge (createMT2 [1, 2]) (createMT2 [2, 1 :: Int]))
+>   putStrLn $ "istEchteObermenge    {1} {1, 2}: " ++ (show $ istEchteObermenge (createMT2    [1]) (createMT2 [1, 2 :: Int]))
+>   putStrLn $ "istEchteObermenge    {1, 2} {1}: " ++ (show $ istEchteObermenge (createMT2 [1, 2]) (createMT2    [1 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "sindElementeFremd       {1} {1, 2}: " ++ (show $ sindElementeFremd (createMT2    [1]) (createMT2    [1, 2 :: Int]))
+>   putStrLn $ "sindElementeFremd {1, 2, 3} {4, 5, 6}: " ++ (show $ sindElementeFremd (createMT2 [1, 2, 3]) (createMT2 [4, 5, 6 :: Int]))
+>   putStrLn ""
+>   putStrLn $ "sindQuerUeberlappend       {1} {1}: " ++ (show $ sindQuerUeberlappend (createMT2    [1]) (createMT2    [1 :: Int]))
+>   putStrLn $ "sindQuerUeberlappend {1, 2, 3} {2, 1, 4}: " ++ (show $ sindQuerUeberlappend (createMT2 [1, 2, 3]) (createMT2 [2, 1, 4 :: Int]))
+>   putStrLn $ "sindQuerUeberlappend    {1} {1, 2}: " ++ (show $ sindQuerUeberlappend (createMT2    [1]) (createMT2 [1, 2 :: Int]))
+>   putStrLn $ "sindQuerUeberlappend    {1, 2} {1}: " ++ (show $ sindQuerUeberlappend (createMT2 [1, 2]) (createMT2    [1 :: Int]))
+>   putStrLn ""
+>   putStrLn ""
