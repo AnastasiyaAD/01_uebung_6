@@ -317,8 +317,8 @@ Allgemeine Funktionen fuer MT3.
 
 Diese Funktion wandelt einen Wert des Typs MT3 in eine Liste vom Typ e um.
  Sie benoetigt die Typklassebeschraenkung (Defaultable e), um sicherzustellen, 
- dass der Typ e eine defaultValue-Funktion besitzt.  
-Haette man nicht diese Beschaenkung, muesste man Bound nutzen, ist es aber sehr
+ dass der Typ e eine defaultValue Funktion besitzt.
+Haette man nicht diese Beschaenkung, muesste man Bound nutzen. Es ist aber sehr
  gross bei Int und Char.
 
 > toListMT3 :: (Defaultable e) => MT3 e -> [e]
@@ -327,7 +327,7 @@ Haette man nicht diese Beschaenkung, muesste man Bound nutzen, ist es aber sehr
 
 --------------------------------------------------------- A.3 ----------------------------------------------------------
 
-Ueberpruefe ob ein Char Element einer Menge ueber Chars ist.
+Ueberpruefe ob ein Char Element in einer Menge ueber Chars ist.
 Man kann hier bei der Ueberpruefung, ob die Eingaben gueltig sind, nicht 
  istKeinGueltigerMengenwert nutzen, weil der Rueckgabetyp dieser Funktion ein 
  Bool ist, und von istKeinGueltigerMengenwert eine Menge.
@@ -337,7 +337,7 @@ Man kann hier bei der Ueberpruefung, ob die Eingaben gueltig sind, nicht
 >     | not (isInt [c] || isMChar [c]) = error "Ungueltiger Charakter"
 >     | otherwise = isInString c (zeige m)
 
-Ueberpruefe ob ein Char kein Element einer Menge ueber Chars ist.
+Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 
 > istKeinElement :: Menge m => Char -> m -> Bool
 > istKeinElement c m = not (istElement c m)
