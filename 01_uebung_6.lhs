@@ -44,25 +44,39 @@ Definiert eine Typklasse für Typen, die einen Standardwert (eine Liste von
 
 --------------------------------------------------------- A.1 ----------------------------------------------------------
 
-Protoimplementierungen
+PROTOIMPLEMENTIERUNGEN
 
->   leereMenge = nichtImplementierbar "leereMenge: Diese Funktion muss in einer Instanz implementiert werden."
->   allMenge = nichtImplementierbar "allMenge: Diese Funktion kann nicht allgemein implementiert werden."
->   vereinige _ _ = nichtImplementierbar "vereinige: Diese Funktion kann nicht allgemein implementiert werden."
->   schneide _ _ = nichtImplementierbar "schneide: Diese Funktion kann nicht allgemein implementiert werden."
->   zieheab _ _ = nichtImplementierbar "zieheab: Diese Funktion kann nicht allgemein implementiert werden."
 >   komplementiere = zieheab allMenge
->   istTeilmenge _ _ = error "istTeilmenge: Diese Funktion kann nicht allgemein implementiert werden."
+
+Zwei Mengen sind gleich, wenn sie Teilmengen voneinander sind
+
 >   sindGleich m1 m2 = istTeilmenge m1 m2 && istTeilmenge m2 m1
 >   sindUngleich m1 m2 = not (sindGleich m1 m2)
+
+Wenn A (echte) Obermenge von B ist, ist dann B (echte) Teilmenge von A
+
 >   istObermenge m1 m2 = istTeilmenge m2 m1
->   istEchteTeilmenge m1 m2 = istTeilmenge m1 m2 && not (sindGleich m1 m2)
 >   istEchteObermenge m1 m2 = istEchteTeilmenge m2 m1 
+
+Eine Menge ist echte Teilmenge einer Anderen, wenn sie Teilmenge aber nicht 
+ gleich ist
+
+>   istEchteTeilmenge m1 m2 = istTeilmenge m1 m2 && not (sindGleich m1 m2)
+
+Zwei Mengen sind elementefremd, wenn ihrer Schnitt die Leeremenge ist
+
 >   sindElementeFremd m1 = sindGleich leereMenge . schneide m1
->   sindQuerUeberlappend m1 m2 = not (sindElementeFremd m1 m2) && not (istTeilmenge m1 m2) && not (istTeilmenge m2 m1)
->   istKeinGueltigerMengenwert fehlermeldung = error fehlermeldung
->   nichtImplementierbar fehlermeldung = error fehlermeldung
->   zeige _ = error "zeige: Diese Funktion muss in einer Instanz implementiert werden."
+
+Zwei Mengen sind quer-ueberlappend, wenn sie...
+  ... mindestens ein Element gemeinsam haben
+  ... jeweils keine Teilmenge voneinander sind
+
+>   sindQuerUeberlappend m1 m2 =
+>       not (sindElementeFremd m1 m2)
+>       && not (istTeilmenge m1 m2)
+>       && not (istTeilmenge m2 m1)
+>   istKeinGueltigerMengenwert = error
+>   nichtImplementierbar = error
 
 
 --------------------------------------------------------- A.2 ----------------------------------------------------------
