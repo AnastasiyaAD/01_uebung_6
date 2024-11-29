@@ -6,7 +6,11 @@
 >              | VerlaengereUm e (MT2 e)
 > newtype MT3 e = MT3 (e -> Bool)
 
-> -- Klasse Defaultable: Definiert eine Typklasse für Typen, die einen Standardwert (eine Liste von Werten) liefern können.
+
+Klasse Defaultable
+Definiert eine Typklasse für Typen, die einen Standardwert (eine Liste von 
+ Werten) liefern können.
+
 > class Defaultable a where
 >   defaultValue :: [a] -- liefert eine Liste von Standardwerten des Typs 'a'.
 
@@ -16,13 +20,14 @@
 > instance Defaultable Char where
 >   defaultValue = ['a'..'z'] ++ ['A'..'Z']
 
+
 > class Menge m where
 >   leereMenge :: m
 >   allMenge :: m
 >   istMenge :: m -> Bool
 >   vereinige :: m -> m -> m
 >   schneide :: m -> m -> m
->   zieheab :: m -> m -> m -- Nimm nur die Elemente der ersten Menge, die nicht in der Zweiten vorkommen
+>   zieheab :: m -> m -> m
 >   komplementiere :: m -> m
 >   sindGleich :: m -> m -> Bool
 >   sindUngleich :: m -> m -> Bool
@@ -35,8 +40,12 @@
 >   istKeinGueltigerMengenwert :: Fehlermeldung -> m
 >   nichtImplementierbar :: Fehlermeldung -> m
 >   zeige :: m -> MengeAlsZeichenreihe
-> -------------------------------------------------------------------- A.1 --------------------------------------------------------------
-> -- Prototypische Implementierungen (A.1)
+
+
+--------------------------------------------------------- A.1 ----------------------------------------------------------
+
+Protoimplementierungen
+
 >   leereMenge = nichtImplementierbar "leereMenge: Diese Funktion muss in einer Instanz implementiert werden."
 >   allMenge = nichtImplementierbar "allMenge: Diese Funktion kann nicht allgemein implementiert werden."
 >   vereinige _ _ = nichtImplementierbar "vereinige: Diese Funktion kann nicht allgemein implementiert werden."
@@ -54,8 +63,12 @@
 >   istKeinGueltigerMengenwert fehlermeldung = error fehlermeldung
 >   nichtImplementierbar fehlermeldung = error fehlermeldung
 >   zeige _ = error "zeige: Diese Funktion muss in einer Instanz implementiert werden."
-> -------------------------------------------------------------------- A.2 --------------------------------------------------------------
-> -------------------------------------------------------------------- MT1 --------------------------------------------------------------
+
+
+--------------------------------------------------------- A.2 ----------------------------------------------------------
+
+--------------------------------------------------------- MT1 ----------------------------------------------------------
+
 > instance Menge (MT1 Char) where
 >   leereMenge = leereMengeMT1
 >   allMenge = MT1 (['a'..'z'] ++ ['A'..'Z'])
@@ -77,6 +90,8 @@
 >   istTeilmenge = istTeilmengeMT1
 >   zeige = zeigeMT1
 
+
+Allgemeine Funktionen fuer MT1
 
 > leereMengeMT1 :: MT1 e 
 > leereMengeMT1 = MT1 []
@@ -110,22 +125,27 @@
 > zeigeMT1 (MT1 elems) = "{" ++ formatElems elems ++ "}"
 
 
+Hilffunktionen fuer MT1.
 
+Fehlermeldung fuer wenn ein oder mehrere Argumente nicht Menge sind.
 
-> -- Fehlermeldung fuer wenn ein oder mehrere Argumente nicht Menge sind.
 > fehlermeldung :: a
 > fehlermeldung = error "Argument muss Menge sein (keine Duplikate)"
-> -- ob es Duplikate einer Liste gibt.
+
+Ob es Duplikate einer Liste gibt.
+
 > noDuplicates :: Eq a => [a] -> Bool
 > noDuplicates [] = True
 > noDuplicates (x:xs) = notElem x xs && noDuplicates xs
 
-> -- Entferne Duplikate einer Liste.
+Entferne Duplikate einer Liste.
+
 > nub :: Eq a => [a] -> [a]
 > nub [] = []
 > nub (e:es) = e : (nub $ filter (/= e) es)
 
-> -- Lasse nur Duplikate einer Liste bleiben.
+Lasse nur Duplikate einer Liste bleiben.
+
 > dup :: Eq a => [a] -> [a]
 > dup [] = []
 > dup (e:es)
@@ -135,13 +155,16 @@
 > toList :: MT1 e -> [e]
 > toList (MT1 list) = list
 
-> -- Formatiere Elemente, um sie auszudrucken.
+Formatiere Elemente, um sie auszudrucken.
+
 > formatElems :: Show a => [a] -> String
 > formatElems []     = ""
 > formatElems [e]    = show e
 > formatElems (e:es) = show e ++ ", " ++ formatElems es
 
-> -------------------------------------------------------------------- MT2 --------------------------------------------------------------
+
+--------------------------------------------------------- MT2 ----------------------------------------------------------
+
 > instance Menge (MT2 Char) where
 >   leereMenge = Nichts
 >   allMenge = createMT2 (['a'..'z'] ++ ['A'..'Z'])
@@ -164,6 +187,7 @@
 >   zeige = zeigeMT2
 
 
+Allgemeine Funktionen fuer MT2.
 
 > istMengeMT2 :: (Eq e) => MT2 e -> Bool
 > istMengeMT2 Nichts = True
@@ -194,13 +218,12 @@
 > zeigeMT2 elems = "{" ++ formatElems (toListMT2 elems) ++ "}"
 
 
-
+Hilffunktionen fuer MT2.
 
 > createMT2 :: [e] -> MT2 e
 > createMT2 [] = Nichts
 > createMT2 [x] = VerlaengereUm x Nichts
 > createMT2 (x:xs) = VerlaengereUm x (createMT2(xs))
-
 
 > toListMT2 :: MT2 e -> [e]
 > toListMT2 x = reverse (toListMT2' x)
@@ -209,8 +232,11 @@
 > toListMT2' (VerlaengereUm z n) = toListMT2' n ++ [z]
 > toListMT2' (Nichts) = []
 
-> -------------------------------------------------------------------- MT3 --------------------------------------------------------------
-> --istMenge muss nicht ueberschrieben werden, weil es nicht moeglich ist, dass ein MT3 nicht eine Menge sei
+
+--------------------------------------------------------- MT3 ----------------------------------------------------------
+
+istMenge muss nicht ueberschrieben werden, weil es nicht moeglich ist, dass ein 
+ MT3 nicht eine Menge sei.
 
 > instance Menge (MT3 Char) where
 >   leereMenge = MT3 (\_ -> False)
@@ -232,6 +258,8 @@
 >   zeige = zeigeMT3
 
 
+Allgemeine Funktionen fuer MT3.
+
 > vereinigeMT3 :: Eq e => MT3 e -> MT3 e -> MT3 e
 > vereinigeMT3 (MT3 f1) (MT3 f2) = MT3 $ \elem -> f1 elem || f2 elem
 
@@ -248,21 +276,33 @@
 
 > zeigeMT3 m = "{" ++ (formatElems . toListMT3) m ++ "}"
 
-> -- Diese Funktion wandelt einen Wert des Typs MT3 in eine Liste vom Typ e um.
-> -- Sie benötigt die Typklassebeschränkung (Defaultable e), um sicherzustellen, dass der Typ e eine defaultValue-Funktion besitzt.
+
+Diese Funktion wandelt einen Wert des Typs MT3 in eine Liste vom Typ e um.
+ Sie benoetigt die Typklassebeschraenkung (Defaultable e), um sicherzustellen, 
+ dass der Typ e eine defaultValue-Funktion besitzt.  
+Haette man nicht diese Beschaenkung, muesste man Bound nutzen, ist es aber sehr
+ gross bei Int und Char.
+
 > toListMT3 :: (Defaultable e) => MT3 e -> [e]
 > toListMT3 (MT3 f) = filter f defaultValue
 
-> -------------------------------------------------------------------- A.3 --------------------------------------------------------------
+
+--------------------------------------------------------- A.3 ----------------------------------------------------------
+
+Ueberpruefe ob ein Char Element einer Menge ueber Chars ist.
+Man kann hier bei der Ueberpruefung, ob die Eingaben gueltig sind, nicht 
+ istKeinGueltigerMengenwert nutzen, weil der Rueckgabetyp dieser Funktion ein 
+ Bool ist, und von istKeinGueltigerMengenwert eine Menge.
+
 > istElement :: Menge m => Char -> m -> Bool
 > istElement c m
->       | not (isInt [c] || isMChar [c]) = error "Invalid character" -- istKeinGueltigerMengenwert "" -> • Could not deduce (Menge m0) from the context: Menge bound by the type signature for: istKeinGueltigerMengenwert :: ...
+>       | not (isInt [c] || isMChar [c]) = error "Ungueltiger Charakter"
 >       | otherwise = isInString c (zeige m)
 
+Ueberpruefe ob ein Char kein Element einer Menge ueber Chars ist.
 
 > istKeinElement :: Menge m => Char -> m -> Bool
 > istKeinElement c m = not (istElement c m)
-
 
 > isInString :: Char -> String -> Bool
 > isInString char str = elem char str
@@ -272,6 +312,9 @@
 
 > isMChar :: String -> Bool
 > isMChar str = all (`elem` ['a'..'z'] ++ ['A'..'Z']) str
+
+
+-------------------------------------------------------- Tests ---------------------------------------------------------
 
 > main = do
 >   putStrLn "------------------------------Char------------------------------"
