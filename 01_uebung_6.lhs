@@ -334,7 +334,7 @@ Man kann hier bei der Ueberpruefung, ob die Eingaben gueltig sind, nicht
 
 > istElement :: Menge m => Char -> m -> Bool
 > istElement c m
->     | not (isInt [c] || isMChar [c]) = error "Ungueltiger Charakter"
+>     | not $ isMChar [c] = error "Ungueltiger Charakter"
 >     | otherwise = isInString c (zeige m)
 
 Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
@@ -344,9 +344,6 @@ Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 
 > isInString :: Char -> String -> Bool
 > isInString char str = elem char str
-
-> isInt :: String -> Bool
-> isInt str = all (`elem` ['1' .. '9']) str
 
 > isMChar :: String -> Bool
 > isMChar str = all (`elem` ['a'..'z'] ++ ['A'..'Z']) str
