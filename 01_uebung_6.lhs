@@ -6,7 +6,11 @@
 >              | VerlaengereUm e (MT2 e)
 > newtype MT3 e = MT3 (e -> Bool)
 
-> -- Klasse Defaultable: Definiert eine Typklasse für Typen, die einen Standardwert (eine Liste von Werten) liefern können.
+
+Klasse Defaultable
+Definiert eine Typklasse für Typen, die einen Standardwert (eine Liste von 
+ Werten) liefern können.
+
 > class Defaultable a where
 >   defaultValue :: [a] -- liefert eine Liste von Standardwerten des Typs 'a'.
 
@@ -16,13 +20,14 @@
 > instance Defaultable Char where
 >   defaultValue = ['a'..'z'] ++ ['A'..'Z']
 
+
 > class Menge m where
 >   leereMenge :: m
 >   allMenge :: m
 >   istMenge :: m -> Bool
 >   vereinige :: m -> m -> m
 >   schneide :: m -> m -> m
->   zieheab :: m -> m -> m -- Nimm nur die Elemente der ersten Menge, die nicht in der Zweiten vorkommen
+>   zieheab :: m -> m -> m
 >   komplementiere :: m -> m
 >   sindGleich :: m -> m -> Bool
 >   sindUngleich :: m -> m -> Bool
@@ -35,30 +40,52 @@
 >   istKeinGueltigerMengenwert :: Fehlermeldung -> m
 >   nichtImplementierbar :: Fehlermeldung -> m
 >   zeige :: m -> MengeAlsZeichenreihe
-> -------------------------------------------------------------------- A.1 --------------------------------------------------------------
-> -- Prototypische Implementierungen (A.1)
->   leereMenge = nichtImplementierbar "leereMenge: Diese Funktion muss in einer Instanz implementiert werden."
->   allMenge = nichtImplementierbar "allMenge: Diese Funktion kann nicht allgemein implementiert werden."
->   vereinige _ _ = nichtImplementierbar "vereinige: Diese Funktion kann nicht allgemein implementiert werden."
->   schneide _ _ = nichtImplementierbar "schneide: Diese Funktion kann nicht allgemein implementiert werden."
->   zieheab _ _ = nichtImplementierbar "zieheab: Diese Funktion kann nicht allgemein implementiert werden."
+
+
+--------------------------------------------------------- A.1 ----------------------------------------------------------
+
+PROTOIMPLEMENTIERUNGEN
+
 >   komplementiere = zieheab allMenge
->   istTeilmenge _ _ = error "istTeilmenge: Diese Funktion kann nicht allgemein implementiert werden."
+
+Zwei Mengen sind gleich, wenn sie Teilmengen voneinander sind
+
 >   sindGleich m1 m2 = istTeilmenge m1 m2 && istTeilmenge m2 m1
->   sindUngleich m1 m2 = not (sindGleich m1 m2)
+>   sindUngleich m1 = not . sindGleich m1
+
+Wenn A (echte) Obermenge von B ist, ist dann B (echte) Teilmenge von A
+
 >   istObermenge m1 m2 = istTeilmenge m2 m1
->   istEchteTeilmenge m1 m2 = istTeilmenge m1 m2 && not (sindGleich m1 m2)
 >   istEchteObermenge m1 m2 = istEchteTeilmenge m2 m1 
+
+Eine Menge ist echte Teilmenge einer Anderen, wenn sie Teilmenge aber nicht 
+ gleich ist
+
+>   istEchteTeilmenge m1 m2 = istTeilmenge m1 m2 && not (sindGleich m1 m2)
+
+Zwei Mengen sind elementefremd, wenn ihrer Schnitt die Leeremenge ist
+
 >   sindElementeFremd m1 = sindGleich leereMenge . schneide m1
->   sindQuerUeberlappend m1 m2 = not (sindElementeFremd m1 m2) && not (istTeilmenge m1 m2) && not (istTeilmenge m2 m1)
->   istKeinGueltigerMengenwert fehlermeldung = error fehlermeldung
->   nichtImplementierbar fehlermeldung = error fehlermeldung
->   zeige _ = error "zeige: Diese Funktion muss in einer Instanz implementiert werden."
-> -------------------------------------------------------------------- A.2 --------------------------------------------------------------
-> -------------------------------------------------------------------- MT1 --------------------------------------------------------------
+
+Zwei Mengen sind quer-ueberlappend, wenn sie...
+  ... mindestens ein Element gemeinsam haben
+  ... jeweils keine Teilmenge voneinander sind
+
+>   sindQuerUeberlappend m1 m2 =
+>       not (sindElementeFremd m1 m2)
+>       && not (istTeilmenge m1 m2)
+>       && not (istTeilmenge m2 m1)
+>   istKeinGueltigerMengenwert = error
+>   nichtImplementierbar = error
+
+
+--------------------------------------------------------- A.2 ----------------------------------------------------------
+
+--------------------------------------------------------- MT1 ----------------------------------------------------------
+
 > instance Menge (MT1 Char) where
->   leereMenge = leereMengeMT1
->   allMenge = MT1 (['a'..'z'] ++ ['A'..'Z'])
+>   leereMenge = MT1 []
+>   allMenge = MT1 defaultValue
 >   istMenge = istMengeMT1
 >   vereinige = vereinigeMT1
 >   schneide = schneideMT1
@@ -68,8 +95,8 @@
 
 
 > instance Menge (MT1 Int) where
->   leereMenge = leereMengeMT1
->   allMenge = MT1 [(-100)..100]
+>   leereMenge = MT1 []
+>   allMenge = MT1 defaultValue
 >   istMenge = istMengeMT1
 >   vereinige = vereinigeMT1
 >   schneide = schneideMT1
@@ -78,73 +105,63 @@
 >   zeige = zeigeMT1
 
 
-> leereMengeMT1 :: MT1 e 
-> leereMengeMT1 = MT1 []
+Allgemeine Funktionen fuer MT1
 
-> istMengeMT1 :: (Eq e) => MT1 e -> Bool
-> istMengeMT1 (MT1 []) = True
-> istMengeMT1 (MT1 list)  = noDuplicates list 
+> istMengeMT1 :: Eq e => MT1 e -> Bool
+> istMengeMT1 (MT1     []) = True
+> istMengeMT1 (MT1 (e:es)) = all (/= e) es && (istMengeMT1 . MT1) es
 
 > vereinigeMT1 :: Eq e => MT1 e -> MT1 e -> MT1 e
-> vereinigeMT1 m1 m2
->       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 . nub $ toList m1 ++ toList m2
+> vereinigeMT1 m1@(MT1 list1) m2@(MT1 list2)
+>       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 . nub $ list1 ++ list2
 >       | otherwise                        = fehlermeldung
 
 > schneideMT1 :: Eq e => MT1 e -> MT1 e -> MT1 e
-> schneideMT1 m1 m2
->       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 . dup $ toList m1 ++ toList m2
+> schneideMT1 m1@(MT1 list1) m2@(MT1 list2)
+>       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 $ [e | e <- list1, e `elem` list2]
 >       | otherwise                        = fehlermeldung
 
 > zieheabMT1 :: Eq e => MT1 e -> MT1 e -> MT1 e
-> zieheabMT1 m1 m2
->       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 $ [e | e <- toList m1, e `notElem` toList m2]
+> zieheabMT1 m1@(MT1 list1) m2@(MT1 list2)
+>       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 $ [e | e <- list1, e `notElem` list2]
 >       | otherwise                        = fehlermeldung
 
 
 > istTeilmengeMT1 :: Eq e => MT1 e -> MT1 e -> Bool
-> istTeilmengeMT1 m1 m2
->       | istMengeMT1 m1 && istMengeMT1 m2 = all (`elem` toList m2) (toList m1)
+> istTeilmengeMT1 m1@(MT1 list1) m2@(MT1 list2)
+>       | istMengeMT1 m1 && istMengeMT1 m2 = all (`elem` list2) list1
 >       | otherwise                        = fehlermeldung
 
 > zeigeMT1 :: Show e => MT1 e -> MengeAlsZeichenreihe
 > zeigeMT1 (MT1 elems) = "{" ++ formatElems elems ++ "}"
 
 
+Hilffunktionen fuer MT1.
 
+Fehlermeldung fuer wenn ein oder mehrere Argumente nicht Menge sind.
 
-> -- Fehlermeldung fuer wenn ein oder mehrere Argumente nicht Menge sind.
 > fehlermeldung :: a
 > fehlermeldung = error "Argument muss Menge sein (keine Duplikate)"
-> -- ob es Duplikate einer Liste gibt.
-> noDuplicates :: Eq a => [a] -> Bool
-> noDuplicates [] = True
-> noDuplicates (x:xs) = notElem x xs && noDuplicates xs
 
-> -- Entferne Duplikate einer Liste.
+Entferne Duplikate einer Liste.
+
 > nub :: Eq a => [a] -> [a]
-> nub [] = []
+> nub     [] = []
 > nub (e:es) = e : (nub $ filter (/= e) es)
 
-> -- Lasse nur Duplikate einer Liste bleiben.
-> dup :: Eq a => [a] -> [a]
-> dup [] = []
-> dup (e:es)
->     | e `elem` es = e : (dup es)
->     | otherwise   = dup es
+Formatiere Elemente, um sie auszudrucken.
 
-> toList :: MT1 e -> [e]
-> toList (MT1 list) = list
-
-> -- Formatiere Elemente, um sie auszudrucken.
 > formatElems :: Show a => [a] -> String
 > formatElems []     = ""
 > formatElems [e]    = show e
 > formatElems (e:es) = show e ++ ", " ++ formatElems es
 
-> -------------------------------------------------------------------- MT2 --------------------------------------------------------------
+
+--------------------------------------------------------- MT2 ----------------------------------------------------------
+
 > instance Menge (MT2 Char) where
 >   leereMenge = Nichts
->   allMenge = createMT2 (['a'..'z'] ++ ['A'..'Z'])
+>   allMenge = createMT2 defaultValue
 >   istMenge = istMengeMT2
 >   vereinige = vereinigeMT2
 >   schneide = schneideMT2
@@ -155,7 +172,7 @@
 
 > instance Menge (MT2 Int) where
 >   leereMenge = Nichts
->   allMenge = createMT2 [(-100)..100]
+>   allMenge = createMT2 defaultValue
 >   istMenge = istMengeMT2
 >   vereinige = vereinigeMT2
 >   schneide = schneideMT2
@@ -164,57 +181,103 @@
 >   zeige = zeigeMT2
 
 
+Allgemeine Funktionen fuer MT2.
 
-> istMengeMT2 :: (Eq e) => MT2 e -> Bool
-> istMengeMT2 Nichts = True
-> istMengeMT2 m  = noDuplicates (toListMT2 m) 
+> istMengeMT2 :: Eq e => MT2 e -> Bool
+> istMengeMT2              Nichts = True
+> istMengeMT2 (VerlaengereUm e m) = (not . isElem e) m && istMengeMT2 m
 
 > vereinigeMT2 :: Eq e => MT2 e -> MT2 e -> MT2 e
 > vereinigeMT2 m1 m2
->       | istMengeMT2 m1 && istMengeMT2 m2 = createMT2 . nub $ toListMT2 m1 ++ toListMT2 m2
+>       | istMengeMT2 m1 && istMengeMT2 m2 = join m1 m2
 >       | otherwise                        = fehlermeldung
 
 > schneideMT2 :: Eq e => MT2 e -> MT2 e -> MT2 e
 > schneideMT2 m1 m2
->       | istMengeMT2 m1 && istMengeMT2 m2 = createMT2 . dup $ toListMT2 m1 ++ toListMT2 m2
+>       | istMengeMT2 m1 && istMengeMT2 m2 = union m1 m2
 >       | otherwise                        = fehlermeldung
 
 > zieheabMT2 :: Eq e => MT2 e -> MT2 e -> MT2 e
 > zieheabMT2 m1 m2
->       | istMengeMT2 m1 && istMengeMT2 m2 = createMT2 [e | e <- toListMT2 m1, e `notElem` toListMT2 m2]
+>       | istMengeMT2 m1 && istMengeMT2 m2 = sub m1 m2
 >       | otherwise                        = fehlermeldung
 
 
 > istTeilmengeMT2 :: Eq e => MT2 e -> MT2 e -> Bool
 > istTeilmengeMT2 m1 m2
->       | istMengeMT2 m1 && istMengeMT2 m2 = all (`elem` toListMT2 m2) (toListMT2 m1)
+>       | istMengeMT2 m1 && istMengeMT2 m2 = isSubset m1 m2
 >       | otherwise                        = fehlermeldung
 
 > zeigeMT2 :: Show e => MT2 e -> MengeAlsZeichenreihe
-> zeigeMT2 elems = "{" ++ formatElems (toListMT2 elems) ++ "}"
+> zeigeMT2 elems = "{" ++ (formatElems . toListMT2) elems ++ "}"
 
 
+Hilffunktionen fuer MT2.
 
+Wandle eine Liste von Dingen in einem MT2 um.
 
 > createMT2 :: [e] -> MT2 e
-> createMT2 [] = Nichts
-> createMT2 [x] = VerlaengereUm x Nichts
-> createMT2 (x:xs) = VerlaengereUm x (createMT2(xs))
+> createMT2     [] = Nichts
+> createMT2 (x:xs) = VerlaengereUm x $ createMT2 xs
 
+Wandle ein MT2 in einer Liste seiner Elemente.
 
 > toListMT2 :: MT2 e -> [e]
-> toListMT2 x = reverse (toListMT2' x)
+> toListMT2              Nichts = []
+> toListMT2 (VerlaengereUm e m) = e : (toListMT2 m)
 
-> toListMT2' :: MT2 e -> [e]
-> toListMT2' (VerlaengereUm z n) = toListMT2' n ++ [z]
-> toListMT2' (Nichts) = []
+Ob ein Ding Element eines MT2s ist.
 
-> -------------------------------------------------------------------- MT3 --------------------------------------------------------------
-> --istMenge muss nicht ueberschrieben werden, weil es nicht moeglich ist, dass ein MT3 nicht eine Menge sei
+> isElem :: Eq e => e -> MT2 e -> Bool
+> isElem _ Nichts = False
+> isElem x (VerlaengereUm e m)
+>     | x == e    = True
+>     | otherwise = isElem x m
+
+Vereinige zwei MT2, wobei man akkumuliert das Ergebnis im ersten Argument.
+
+> join :: Eq e => MT2 e -> MT2 e -> MT2 e
+> join      m Nichts = m
+> join m1 (VerlaengereUm e m2)
+>     -- wenn e in m1, dann ueberspringe ihn
+>     | isElem e m1 = join m1 m2
+>     | otherwise   = join (VerlaengereUm e m1) m2
+
+Schneide zwei MT2, wobei man akkumuliert das Ergebnis am Rueckweg der Rekursion.
+
+> union :: Eq e => MT2 e -> MT2 e -> MT2 e
+> union Nichts      _ = Nichts
+> union (VerlaengereUm e m1) m2
+>     -- wenn e in m2, dann behalte es
+>     | isElem e m2 = VerlaengereUm e $ union m1 m2
+>     | otherwise   = union m1 m2
+
+Ziehe den zweiten MT2 vom Ersten ab, wobei man akkumuliert das Ergebnis am
+ Rueckweg der Rekursion.
+
+> sub :: Eq e => MT2 e -> MT2 e -> MT2 e
+> sub Nichts      _ = Nichts
+> sub (VerlaengereUm e m1) m2
+>     -- wenn e in m2, dann ueberspringe ihn
+>     | isElem e m2 = sub m1 m2
+>     | otherwise   = VerlaengereUm e $ sub m1 m2
+
+Ob der erste MT2 Teilmenge vom Zweiten ist.
+
+> isSubset :: Eq e => MT2 e -> MT2 e -> Bool
+> isSubset Nichts _ = True
+> isSubset (VerlaengereUm e m1) m2
+>     -- wenn e in m2, pruefe m1 weiter
+>     | isElem e m2 = isSubset m1 m2
+>     | otherwise   = False
+
+
+--------------------------------------------------------- MT3 ----------------------------------------------------------
 
 > instance Menge (MT3 Char) where
 >   leereMenge = MT3 (\_ -> False)
 >   allMenge = MT3 (\_ -> True )
+>   istMenge = \_ -> True
 >   vereinige = vereinigeMT3
 >   schneide = schneideMT3
 >   zieheab = zieheabMT3
@@ -225,12 +288,15 @@
 > instance Menge (MT3 Int) where
 >   leereMenge = MT3 (\_ -> False)
 >   allMenge = MT3 (\_ -> True )
+>   istMenge = \_ -> True
 >   vereinige = vereinigeMT3
 >   schneide = schneideMT3
 >   zieheab = zieheabMT3
 >   istTeilmenge = istTeilmengeMT3
 >   zeige = zeigeMT3
 
+
+Allgemeine Funktionen fuer MT3.
 
 > vereinigeMT3 :: Eq e => MT3 e -> MT3 e -> MT3 e
 > vereinigeMT3 (MT3 f1) (MT3 f2) = MT3 $ \elem -> f1 elem || f2 elem
@@ -243,35 +309,44 @@
 
 > istTeilmengeMT3 :: (Eq e, Defaultable e) => MT3 e -> MT3 e -> Bool
 > istTeilmengeMT3 m1 (MT3 f) =
->         let elems1 = toListMT3 m1
->         in all f elems1
+>     let elems1 = toListMT3 m1
+>     in all f elems1
 
 > zeigeMT3 m = "{" ++ (formatElems . toListMT3) m ++ "}"
 
-> -- Diese Funktion wandelt einen Wert des Typs MT3 in eine Liste vom Typ e um.
-> -- Sie benötigt die Typklassebeschränkung (Defaultable e), um sicherzustellen, dass der Typ e eine defaultValue-Funktion besitzt.
+
+Diese Funktion wandelt einen Wert des Typs MT3 in eine Liste vom Typ e um.
+ Sie benoetigt die Typklassebeschraenkung (Defaultable e), um sicherzustellen, 
+ dass der Typ e eine defaultValue Funktion besitzt.
+Haette man nicht diese Beschaenkung, muesste man Bound nutzen. Es ist aber sehr
+ gross bei Int und Char.
+
 > toListMT3 :: (Defaultable e) => MT3 e -> [e]
 > toListMT3 (MT3 f) = filter f defaultValue
 
-> -------------------------------------------------------------------- A.3 --------------------------------------------------------------
+
+--------------------------------------------------------- A.3 ----------------------------------------------------------
+
+Ueberpruefe ob ein Char Element in einer Menge ueber Chars ist.
+Man kann hier bei der Ueberpruefung, ob die Eingaben gueltig sind, nicht 
+ istKeinGueltigerMengenwert nutzen, weil der Rueckgabetyp dieser Funktion ein 
+ Bool ist, und von istKeinGueltigerMengenwert eine Menge.
+
 > istElement :: Menge m => Char -> m -> Bool
 > istElement c m
->       | not (isInt [c] || isMChar [c]) = error "Invalid character" -- istKeinGueltigerMengenwert "" -> • Could not deduce (Menge m0) from the context: Menge bound by the type signature for: istKeinGueltigerMengenwert :: ...
->       | otherwise = isInString c (zeige m)
+>     | not $ isDefaultChar c = error "Ungueltiger Charakter"
+>     | otherwise             = elem c $ zeige m
 
+Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 
 > istKeinElement :: Menge m => Char -> m -> Bool
-> istKeinElement c m = not (istElement c m)
+> istKeinElement c = not . istElement c
+
+> isDefaultChar :: Char -> Bool
+> isDefaultChar = (`elem` defaultValue)
 
 
-> isInString :: Char -> String -> Bool
-> isInString char str = elem char str
-
-> isInt :: String -> Bool
-> isInt str = all (`elem` ['1' .. '9']) str
-
-> isMChar :: String -> Bool
-> isMChar str = all (`elem` ['a'..'z'] ++ ['A'..'Z']) str
+-------------------------------------------------------- Tests ---------------------------------------------------------
 
 > main = do
 >   putStrLn "------------------------------Char------------------------------"
@@ -325,13 +400,13 @@
 >   putStrLn $ "istEchteObermenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT1  "a") (MT1 "ab"))
 >   putStrLn $ "istEchteObermenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT1 "ab") (MT1  "a"))
 >   putStrLn ""
->   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT1  "a") (MT1  "ab"))
->   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ istEchteObermenge (MT1 "abc") (MT1 "def"))
+>   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ sindElementeFremd (MT1  "a") (MT1  "ab"))
+>   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ sindElementeFremd (MT1 "abc") (MT1 "def"))
 >   putStrLn ""
->   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ istEchteObermenge (MT1  "a") (MT1  "a"))
->   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ istEchteObermenge (MT1 "abc") (MT1 "bad"))
->   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT1  "a") (MT1 "ab"))
->   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT1 "ab") (MT1  "a"))
+>   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ sindQuerUeberlappend (MT1  "a") (MT1  "a"))
+>   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ sindQuerUeberlappend (MT1 "abc") (MT1 "bad"))
+>   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ sindQuerUeberlappend (MT1  "a") (MT1 "ab"))
+>   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ sindQuerUeberlappend (MT1 "ab") (MT1  "a"))
 >   putStrLn ""
 >   putStrLn ""
 >   putStrLn "------------------------------Int------------------------------"
@@ -448,13 +523,13 @@
 >   putStrLn $ "istEchteObermenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2 "ab"))
 >   putStrLn $ "istEchteObermenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (createMT2 "ab") (createMT2  "a"))
 >   putStrLn ""
->   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2  "ab"))
->   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ istEchteObermenge (createMT2 "abc") (createMT2 "def"))
+>   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ sindElementeFremd (createMT2  "a") (createMT2  "ab"))
+>   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ sindElementeFremd (createMT2 "abc") (createMT2 "def"))
 >   putStrLn ""
->   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2  "a"))
->   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ istEchteObermenge (createMT2 "abc") (createMT2 "bad"))
->   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2 "ab"))
->   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (createMT2 "ab") (createMT2  "a"))
+>   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ sindQuerUeberlappend (createMT2  "a") (createMT2  "a"))
+>   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ sindQuerUeberlappend (createMT2 "abc") (createMT2 "bad"))
+>   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ sindQuerUeberlappend (createMT2  "a") (createMT2 "ab"))
+>   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ sindQuerUeberlappend (createMT2 "ab") (createMT2  "a"))
 >   putStrLn ""
 >   putStrLn ""
 >   putStrLn "------------------------------Int------------------------------"
@@ -572,13 +647,13 @@
 >   putStrLn $ "istEchteObermenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 ab3))
 >   putStrLn $ "istEchteObermenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT3 ab3) (MT3  a3))
 >   putStrLn ""
->   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 ab3))
->   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ istEchteObermenge (MT3  abc3) (MT3  def3))
+>   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ sindElementeFremd (MT3  a3) (MT3 ab3))
+>   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ sindElementeFremd (MT3  abc3) (MT3  def3))
 >   putStrLn ""
->   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 a3))
->   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ istEchteObermenge (MT3  abc3) (MT3  bad3))
->   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 ab3))
->   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT3  ab3) (MT3 a3))
+>   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ sindQuerUeberlappend (MT3  a3) (MT3 a3))
+>   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ sindQuerUeberlappend (MT3  abc3) (MT3  bad3))
+>   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ sindQuerUeberlappend (MT3  a3) (MT3 ab3))
+>   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ sindQuerUeberlappend (MT3  ab3) (MT3 a3))
 >   putStrLn ""
 >   putStrLn ""
 >   putStrLn "------------------------------Int------------------------------"
@@ -633,13 +708,13 @@
 >   putStrLn $ "istEchteObermenge      {1} {1, 2}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 ab3'))
 >   putStrLn $ "istEchteObermenge      {1, 2} {1}: " ++ (show $ istEchteObermenge (MT3 ab3') (MT3  a3'))
 >   putStrLn ""
->   putStrLn $ "sindElementeFremd           {1} {1, 2}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 ab3'))
->   putStrLn $ "sindElementeFremd {1, 2, 3} {4, 5, 6}: " ++ (show $ istEchteObermenge (MT3  abc3') (MT3  def3'))
+>   putStrLn $ "sindElementeFremd           {1} {1, 2}: " ++ (show $ sindElementeFremd (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "sindElementeFremd {1, 2, 3} {4, 5, 6}: " ++ (show $ sindElementeFremd (MT3  abc3') (MT3  def3'))
 >   putStrLn ""
->   putStrLn $ "sindQuerUeberlappend           {1} {1}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 a3'))
->   putStrLn $ "sindQuerUeberlappend {1, 2, 3} {2, 1, 4}: " ++ (show $ istEchteObermenge (MT3  abc3') (MT3  bad3'))
->   putStrLn $ "sindQuerUeberlappend      {1} {1, 2}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 ab3'))
->   putStrLn $ "sindQuerUeberlappend      {1, 2} {1}: " ++ (show $ istEchteObermenge (MT3  ab3') (MT3 a3'))
+>   putStrLn $ "sindQuerUeberlappend           {1} {1}: " ++ (show $ sindQuerUeberlappend (MT3  a3') (MT3 a3'))
+>   putStrLn $ "sindQuerUeberlappend {1, 2, 3} {2, 1, 4}: " ++ (show $ sindQuerUeberlappend (MT3  abc3') (MT3  bad3'))
+>   putStrLn $ "sindQuerUeberlappend      {1} {1, 2}: " ++ (show $ sindQuerUeberlappend (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "sindQuerUeberlappend      {1, 2} {1}: " ++ (show $ sindQuerUeberlappend (MT3  ab3') (MT3 a3'))
 >   putStrLn ""
 >   putStrLn ""
 >   putStrLn "------------------------------A.3------------------------------"
