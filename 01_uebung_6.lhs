@@ -161,7 +161,7 @@ Formatiere Elemente, um sie auszudrucken.
 
 > instance Menge (MT2 Char) where
 >   leereMenge = Nichts
->   allMenge = createMT2 (['a'..'z'] ++ ['A'..'Z'])
+>   allMenge = createMT2 defaultValue
 >   istMenge = istMengeMT2
 >   vereinige = vereinigeMT2
 >   schneide = schneideMT2
@@ -172,7 +172,7 @@ Formatiere Elemente, um sie auszudrucken.
 
 > instance Menge (MT2 Int) where
 >   leereMenge = Nichts
->   allMenge = createMT2 [(-100)..100]
+>   allMenge = createMT2 defaultValue
 >   istMenge = istMengeMT2
 >   vereinige = vereinigeMT2
 >   schneide = schneideMT2
@@ -183,62 +183,93 @@ Formatiere Elemente, um sie auszudrucken.
 
 Allgemeine Funktionen fuer MT2.
 
-> istMengeMT2 :: (Eq e) => MT2 e -> Bool
-> istMengeMT2 Nichts = True
-> istMengeMT2 m  = noDuplicates (toListMT2 m) 
+> istMengeMT2 :: Eq e => MT2 e -> Bool
+> istMengeMT2              Nichts = True
+> istMengeMT2 (VerlaengereUm e m) = (not . isElem e) m && istMengeMT2 m
 
 > vereinigeMT2 :: Eq e => MT2 e -> MT2 e -> MT2 e
 > vereinigeMT2 m1 m2
->       | istMengeMT2 m1 && istMengeMT2 m2 = createMT2 . nub $ toListMT2 m1 ++ toListMT2 m2
+>       | istMengeMT2 m1 && istMengeMT2 m2 = join m1 m2
 >       | otherwise                        = fehlermeldung
 
 > schneideMT2 :: Eq e => MT2 e -> MT2 e -> MT2 e
 > schneideMT2 m1 m2
->       | istMengeMT2 m1 && istMengeMT2 m2 = createMT2 . dup $ toListMT2 m1 ++ toListMT2 m2
+>       | istMengeMT2 m1 && istMengeMT2 m2 = union m1 m2
 >       | otherwise                        = fehlermeldung
 
 > zieheabMT2 :: Eq e => MT2 e -> MT2 e -> MT2 e
 > zieheabMT2 m1 m2
->       | istMengeMT2 m1 && istMengeMT2 m2 = createMT2 [e | e <- toListMT2 m1, e `notElem` toListMT2 m2]
+>       | istMengeMT2 m1 && istMengeMT2 m2 = sub m1 m2
 >       | otherwise                        = fehlermeldung
 
 
 > istTeilmengeMT2 :: Eq e => MT2 e -> MT2 e -> Bool
 > istTeilmengeMT2 m1 m2
->       | istMengeMT2 m1 && istMengeMT2 m2 = all (`elem` toListMT2 m2) (toListMT2 m1)
+>       | istMengeMT2 m1 && istMengeMT2 m2 = isSubset m1 m2
 >       | otherwise                        = fehlermeldung
 
 > zeigeMT2 :: Show e => MT2 e -> MengeAlsZeichenreihe
-> zeigeMT2 elems = "{" ++ formatElems (toListMT2 elems) ++ "}"
+> zeigeMT2 elems = "{" ++ (formatElems . toListMT2) elems ++ "}"
 
 
 Hilffunktionen fuer MT2.
 
+Wandle eine Liste von Dingen in einem MT2 um.
+
 > createMT2 :: [e] -> MT2 e
-> createMT2 [] = Nichts
-> createMT2 [x] = VerlaengereUm x Nichts
-> createMT2 (x:xs) = VerlaengereUm x (createMT2(xs))
+> createMT2     [] = Nichts
+> createMT2 (x:xs) = VerlaengereUm x $ createMT2 xs
+
+Wandle ein MT2 in einer Liste seiner Elemente.
 
 > toListMT2 :: MT2 e -> [e]
-> toListMT2 x = reverse (toListMT2' x)
+> toListMT2              Nichts = []
+> toListMT2 (VerlaengereUm e m) = e : (toListMT2 m)
 
-> toListMT2' :: MT2 e -> [e]
-> toListMT2' (VerlaengereUm z n) = toListMT2' n ++ [z]
-> toListMT2' (Nichts) = []
+Ob ein Ding Element eines MT2s ist.
 
-Ob es Duplikate einer Liste gibt.
+> isElem :: Eq e => e -> MT2 e -> Bool
+> isElem _ Nichts = False
+> isElem x (VerlaengereUm e m)
+>     | x == e    = True
+>     | otherwise = isElem x m
 
-> noDuplicates :: Eq a => [a] -> Bool
-> noDuplicates [] = True
-> noDuplicates (x:xs) = notElem x xs && noDuplicates xs
+Vereinige zwei MT2, wobei man akkumuliert das Ergebnis im ersten Argument.
 
-Lasse nur Duplikate einer Liste bleiben.
+> join :: Eq e => MT2 e -> MT2 e -> MT2 e
+> join      m Nichts = m
+> join m1 (VerlaengereUm e m2)
+>     -- wenn e in m1, dann ueberspringe ihn
+>     | isElem e m1 = join m1 m2
+>     | otherwise   = join (VerlaengereUm e m1) m2
 
-> dup :: Eq a => [a] -> [a]
-> dup [] = []
-> dup (e:es)
->     | e `elem` es = e : (dup es)
->     | otherwise   = dup es
+Schneide zwei MT2, wobei man akkumuliert das Ergebnis am Rueckweg der Rekursion.
+
+> union :: Eq e => MT2 e -> MT2 e -> MT2 e
+> union Nichts      _ = Nichts
+> union (VerlaengereUm e m1) m2
+>     -- wenn e in m2, dann behalte es
+>     | isElem e m2 = VerlaengereUm e $ union m1 m2
+>     | otherwise   = union m1 m2
+
+Ziehe den zweiten MT2 vom Ersten ab, wobei man akkumuliert das Ergebnis am
+ Rueckweg der Rekursion.
+
+> sub :: Eq e => MT2 e -> MT2 e -> MT2 e
+> sub Nichts      _ = Nichts
+> sub (VerlaengereUm e m1) m2
+>     -- wenn e in m2, dann ueberspringe ihn
+>     | isElem e m2 = sub m1 m2
+>     | otherwise   = VerlaengereUm e $ sub m1 m2
+
+Ob der erste MT2 Teilmenge vom Zweiten ist.
+
+> isSubset :: Eq e => MT2 e -> MT2 e -> Bool
+> isSubset Nichts _ = True
+> isSubset (VerlaengereUm e m1) m2
+>     -- wenn e in m2, pruefe m1 weiter
+>     | isElem e m2 = isSubset m1 m2
+>     | otherwise   = False
 
 
 --------------------------------------------------------- MT3 ----------------------------------------------------------
