@@ -309,8 +309,8 @@ Allgemeine Funktionen fuer MT3.
 
 > istTeilmengeMT3 :: (Eq e, Defaultable e) => MT3 e -> MT3 e -> Bool
 > istTeilmengeMT3 m1 (MT3 f) =
->         let elems1 = toListMT3 m1
->         in all f elems1
+>     let elems1 = toListMT3 m1
+>     in all f elems1
 
 > zeigeMT3 m = "{" ++ (formatElems . toListMT3) m ++ "}"
 
@@ -334,8 +334,8 @@ Man kann hier bei der Ueberpruefung, ob die Eingaben gueltig sind, nicht
 
 > istElement :: Menge m => Char -> m -> Bool
 > istElement c m
->       | not (isInt [c] || isMChar [c]) = error "Ungueltiger Charakter"
->       | otherwise = isInString c (zeige m)
+>     | not (isInt [c] || isMChar [c]) = error "Ungueltiger Charakter"
+>     | otherwise = isInString c (zeige m)
 
 Ueberpruefe ob ein Char kein Element einer Menge ueber Chars ist.
 
