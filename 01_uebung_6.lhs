@@ -657,16 +657,16 @@ Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 >   putStrLn ""
 >   putStrLn ""
 >   putStrLn "------------------------------Int------------------------------"
->   let a3'  = \e -> if e == '1'                             then True else False
->       b3'  = \e -> if e == '2'                             then True else False
->       ab3' = \e -> if e == '1' || e == '2'                 then True else False
->       ba3' = \e -> if e == '2' || e == '1'                 then True else False
->       abc3' = \e -> if e == '1' || e == '2' || e == '3'    then True else False
->       def3' = \e -> if e == '4' || e == '5' || e == '6'    then True else False
->       bad3' = \e -> if e == '2' || e == '1' || e == '4'    then True else False
+>   let a3'  = \(e :: Int) -> if e == 1                         then True else False
+>       b3'  = \(e :: Int) -> if e == 2                         then True else False
+>       ab3' = \(e :: Int) -> if e == 1 || e == 2               then True else False
+>       ba3' = \(e :: Int) -> if e == 2 || e == 1               then True else False
+>       abc3' = \(e :: Int) -> if e == 1 || e == 2 || e == 3    then True else False
+>       def3' = \(e :: Int) -> if e == 4 || e == 5 || e == 6    then True else False
+>       bad3' = \(e :: Int) -> if e == 2 || e == 1 || e == 4    then True else False
 >   putStrLn ""
->   putStrLn $ "leereMenge: " ++ zeige (leereMenge :: MT3 Char)
->   putStrLn $ "allMenge  : " ++ zeige (allMenge   :: MT3 Char)
+>   putStrLn $ "leereMenge: " ++ zeige (leereMenge :: MT3 Int)
+>   putStrLn $ "allMenge  : " ++ zeige (allMenge   :: MT3 Int)
 >   putStrLn ""
 >   putStrLn "istMenge ist die Protoimplementierung"
 >   putStrLn ""
