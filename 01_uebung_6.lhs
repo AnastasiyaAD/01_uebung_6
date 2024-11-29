@@ -249,12 +249,10 @@ Hilffunktionen fuer MT2.
 
 --------------------------------------------------------- MT3 ----------------------------------------------------------
 
-istMenge muss nicht ueberschrieben werden, weil es nicht moeglich ist, dass ein 
- MT3 nicht eine Menge sei.
-
 > instance Menge (MT3 Char) where
 >   leereMenge = MT3 (\_ -> False)
 >   allMenge = MT3 (\_ -> True )
+>   istMenge = \_ -> True
 >   vereinige = vereinigeMT3
 >   schneide = schneideMT3
 >   zieheab = zieheabMT3
@@ -265,6 +263,7 @@ istMenge muss nicht ueberschrieben werden, weil es nicht moeglich ist, dass ein
 > instance Menge (MT3 Int) where
 >   leereMenge = MT3 (\_ -> False)
 >   allMenge = MT3 (\_ -> True )
+>   istMenge = \_ -> True
 >   vereinige = vereinigeMT3
 >   schneide = schneideMT3
 >   zieheab = zieheabMT3
