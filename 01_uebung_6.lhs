@@ -335,15 +335,12 @@ Man kann hier bei der Ueberpruefung, ob die Eingaben gueltig sind, nicht
 > istElement :: Menge m => Char -> m -> Bool
 > istElement c m
 >     | not $ isDefaultChar c = error "Ungueltiger Charakter"
->     | otherwise = isInString c (zeige m)
+>     | otherwise             = elem c $ zeige m
 
 Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 
 > istKeinElement :: Menge m => Char -> m -> Bool
 > istKeinElement c = not . istElement c
-
-> isInString :: Char -> String -> Bool
-> isInString char str = elem char str
 
 > isDefaultChar :: Char -> Bool
 > isDefaultChar = (`elem` defaultValue)
