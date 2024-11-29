@@ -84,8 +84,8 @@ Zwei Mengen sind quer-ueberlappend, wenn sie...
 --------------------------------------------------------- MT1 ----------------------------------------------------------
 
 > instance Menge (MT1 Char) where
->   leereMenge = leereMengeMT1
->   allMenge = MT1 (['a'..'z'] ++ ['A'..'Z'])
+>   leereMenge = MT1 []
+>   allMenge = MT1 defaultValue
 >   istMenge = istMengeMT1
 >   vereinige = vereinigeMT1
 >   schneide = schneideMT1
@@ -95,8 +95,8 @@ Zwei Mengen sind quer-ueberlappend, wenn sie...
 
 
 > instance Menge (MT1 Int) where
->   leereMenge = leereMengeMT1
->   allMenge = MT1 [(-100)..100]
+>   leereMenge = MT1 []
+>   allMenge = MT1 defaultValue
 >   istMenge = istMengeMT1
 >   vereinige = vereinigeMT1
 >   schneide = schneideMT1
@@ -107,32 +107,29 @@ Zwei Mengen sind quer-ueberlappend, wenn sie...
 
 Allgemeine Funktionen fuer MT1
 
-> leereMengeMT1 :: MT1 e 
-> leereMengeMT1 = MT1 []
-
-> istMengeMT1 :: (Eq e) => MT1 e -> Bool
-> istMengeMT1 (MT1 []) = True
-> istMengeMT1 (MT1 list)  = noDuplicates list 
+> istMengeMT1 :: Eq e => MT1 e -> Bool
+> istMengeMT1 (MT1     []) = True
+> istMengeMT1 (MT1 (e:es)) = all (/= e) es && (istMengeMT1 . MT1) es
 
 > vereinigeMT1 :: Eq e => MT1 e -> MT1 e -> MT1 e
-> vereinigeMT1 m1 m2
->       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 . nub $ toList m1 ++ toList m2
+> vereinigeMT1 m1@(MT1 list1) m2@(MT1 list2)
+>       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 . nub $ list1 ++ list2
 >       | otherwise                        = fehlermeldung
 
 > schneideMT1 :: Eq e => MT1 e -> MT1 e -> MT1 e
-> schneideMT1 m1 m2
->       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 . dup $ toList m1 ++ toList m2
+> schneideMT1 m1@(MT1 list1) m2@(MT1 list2)
+>       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 $ [e | e <- list1, e `elem` list2]
 >       | otherwise                        = fehlermeldung
 
 > zieheabMT1 :: Eq e => MT1 e -> MT1 e -> MT1 e
-> zieheabMT1 m1 m2
->       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 $ [e | e <- toList m1, e `notElem` toList m2]
+> zieheabMT1 m1@(MT1 list1) m2@(MT1 list2)
+>       | istMengeMT1 m1 && istMengeMT1 m2 = MT1 $ [e | e <- list1, e `notElem` list2]
 >       | otherwise                        = fehlermeldung
 
 
 > istTeilmengeMT1 :: Eq e => MT1 e -> MT1 e -> Bool
-> istTeilmengeMT1 m1 m2
->       | istMengeMT1 m1 && istMengeMT1 m2 = all (`elem` toList m2) (toList m1)
+> istTeilmengeMT1 m1@(MT1 list1) m2@(MT1 list2)
+>       | istMengeMT1 m1 && istMengeMT1 m2 = all (`elem` list2) list1
 >       | otherwise                        = fehlermeldung
 
 > zeigeMT1 :: Show e => MT1 e -> MengeAlsZeichenreihe
@@ -146,28 +143,11 @@ Fehlermeldung fuer wenn ein oder mehrere Argumente nicht Menge sind.
 > fehlermeldung :: a
 > fehlermeldung = error "Argument muss Menge sein (keine Duplikate)"
 
-Ob es Duplikate einer Liste gibt.
-
-> noDuplicates :: Eq a => [a] -> Bool
-> noDuplicates [] = True
-> noDuplicates (x:xs) = notElem x xs && noDuplicates xs
-
 Entferne Duplikate einer Liste.
 
 > nub :: Eq a => [a] -> [a]
-> nub [] = []
+> nub     [] = []
 > nub (e:es) = e : (nub $ filter (/= e) es)
-
-Lasse nur Duplikate einer Liste bleiben.
-
-> dup :: Eq a => [a] -> [a]
-> dup [] = []
-> dup (e:es)
->     | e `elem` es = e : (dup es)
->     | otherwise   = dup es
-
-> toList :: MT1 e -> [e]
-> toList (MT1 list) = list
 
 Formatiere Elemente, um sie auszudrucken.
 
@@ -245,6 +225,20 @@ Hilffunktionen fuer MT2.
 > toListMT2' :: MT2 e -> [e]
 > toListMT2' (VerlaengereUm z n) = toListMT2' n ++ [z]
 > toListMT2' (Nichts) = []
+
+Ob es Duplikate einer Liste gibt.
+
+> noDuplicates :: Eq a => [a] -> Bool
+> noDuplicates [] = True
+> noDuplicates (x:xs) = notElem x xs && noDuplicates xs
+
+Lasse nur Duplikate einer Liste bleiben.
+
+> dup :: Eq a => [a] -> [a]
+> dup [] = []
+> dup (e:es)
+>     | e `elem` es = e : (dup es)
+>     | otherwise   = dup es
 
 
 --------------------------------------------------------- MT3 ----------------------------------------------------------
