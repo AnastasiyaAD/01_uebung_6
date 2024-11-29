@@ -51,7 +51,7 @@ PROTOIMPLEMENTIERUNGEN
 Zwei Mengen sind gleich, wenn sie Teilmengen voneinander sind
 
 >   sindGleich m1 m2 = istTeilmenge m1 m2 && istTeilmenge m2 m1
->   sindUngleich m1 m2 = not (sindGleich m1 m2)
+>   sindUngleich m1 = not . sindGleich m1
 
 Wenn A (echte) Obermenge von B ist, ist dann B (echte) Teilmenge von A
 
@@ -340,13 +340,13 @@ Man kann hier bei der Ueberpruefung, ob die Eingaben gueltig sind, nicht
 Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 
 > istKeinElement :: Menge m => Char -> m -> Bool
-> istKeinElement c m = not (istElement c m)
+> istKeinElement c = not . istElement c
 
 > isInString :: Char -> String -> Bool
 > isInString char str = elem char str
 
 > isDefaultChar :: Char -> Bool
-> isDefaultChar c = c `elem` defaultValue
+> isDefaultChar = (`elem` defaultValue)
 
 
 -------------------------------------------------------- Tests ---------------------------------------------------------
