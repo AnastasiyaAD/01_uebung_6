@@ -400,13 +400,13 @@ Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 >   putStrLn $ "istEchteObermenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT1  "a") (MT1 "ab"))
 >   putStrLn $ "istEchteObermenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT1 "ab") (MT1  "a"))
 >   putStrLn ""
->   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT1  "a") (MT1  "ab"))
->   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ istEchteObermenge (MT1 "abc") (MT1 "def"))
+>   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ sindElementeFremd (MT1  "a") (MT1  "ab"))
+>   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ sindElementeFremd (MT1 "abc") (MT1 "def"))
 >   putStrLn ""
->   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ istEchteObermenge (MT1  "a") (MT1  "a"))
->   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ istEchteObermenge (MT1 "abc") (MT1 "bad"))
->   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT1  "a") (MT1 "ab"))
->   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT1 "ab") (MT1  "a"))
+>   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ sindQuerUeberlappend (MT1  "a") (MT1  "a"))
+>   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ sindQuerUeberlappend (MT1 "abc") (MT1 "bad"))
+>   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ sindQuerUeberlappend (MT1  "a") (MT1 "ab"))
+>   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ sindQuerUeberlappend (MT1 "ab") (MT1  "a"))
 >   putStrLn ""
 >   putStrLn ""
 >   putStrLn "------------------------------Int------------------------------"
@@ -523,13 +523,13 @@ Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 >   putStrLn $ "istEchteObermenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2 "ab"))
 >   putStrLn $ "istEchteObermenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (createMT2 "ab") (createMT2  "a"))
 >   putStrLn ""
->   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2  "ab"))
->   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ istEchteObermenge (createMT2 "abc") (createMT2 "def"))
+>   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ sindElementeFremd (createMT2  "a") (createMT2  "ab"))
+>   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ sindElementeFremd (createMT2 "abc") (createMT2 "def"))
 >   putStrLn ""
->   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2  "a"))
->   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ istEchteObermenge (createMT2 "abc") (createMT2 "bad"))
->   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (createMT2  "a") (createMT2 "ab"))
->   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (createMT2 "ab") (createMT2  "a"))
+>   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ sindQuerUeberlappend (createMT2  "a") (createMT2  "a"))
+>   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ sindQuerUeberlappend (createMT2 "abc") (createMT2 "bad"))
+>   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ sindQuerUeberlappend (createMT2  "a") (createMT2 "ab"))
+>   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ sindQuerUeberlappend (createMT2 "ab") (createMT2  "a"))
 >   putStrLn ""
 >   putStrLn ""
 >   putStrLn "------------------------------Int------------------------------"
@@ -647,13 +647,13 @@ Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 >   putStrLn $ "istEchteObermenge      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 ab3))
 >   putStrLn $ "istEchteObermenge      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT3 ab3) (MT3  a3))
 >   putStrLn ""
->   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 ab3))
->   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ istEchteObermenge (MT3  abc3) (MT3  def3))
+>   putStrLn $ "sindElementeFremd           {'a'} {'a', 'b'}: " ++ (show $ sindElementeFremd (MT3  a3) (MT3 ab3))
+>   putStrLn $ "sindElementeFremd {'a', 'b', 'c'} {'d', 'e', 'f'}: " ++ (show $ sindElementeFremd (MT3  abc3) (MT3  def3))
 >   putStrLn ""
->   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 a3))
->   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ istEchteObermenge (MT3  abc3) (MT3  bad3))
->   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ istEchteObermenge (MT3  a3) (MT3 ab3))
->   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ istEchteObermenge (MT3  ab3) (MT3 a3))
+>   putStrLn $ "sindQuerUeberlappend           {'a'} {'a'}: " ++ (show $ sindQuerUeberlappend (MT3  a3) (MT3 a3))
+>   putStrLn $ "sindQuerUeberlappend {'a', 'b', 'c'} {'b', 'a', 'd'}: " ++ (show $ sindQuerUeberlappend (MT3  abc3) (MT3  bad3))
+>   putStrLn $ "sindQuerUeberlappend      {'a'} {'a', 'b'}: " ++ (show $ sindQuerUeberlappend (MT3  a3) (MT3 ab3))
+>   putStrLn $ "sindQuerUeberlappend      {'a', 'b'} {'a'}: " ++ (show $ sindQuerUeberlappend (MT3  ab3) (MT3 a3))
 >   putStrLn ""
 >   putStrLn ""
 >   putStrLn "------------------------------Int------------------------------"
@@ -708,13 +708,13 @@ Ueberpruefe ob ein Char kein Element in einer Menge ueber Chars ist.
 >   putStrLn $ "istEchteObermenge      {1} {1, 2}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 ab3'))
 >   putStrLn $ "istEchteObermenge      {1, 2} {1}: " ++ (show $ istEchteObermenge (MT3 ab3') (MT3  a3'))
 >   putStrLn ""
->   putStrLn $ "sindElementeFremd           {1} {1, 2}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 ab3'))
->   putStrLn $ "sindElementeFremd {1, 2, 3} {4, 5, 6}: " ++ (show $ istEchteObermenge (MT3  abc3') (MT3  def3'))
+>   putStrLn $ "sindElementeFremd           {1} {1, 2}: " ++ (show $ sindElementeFremd (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "sindElementeFremd {1, 2, 3} {4, 5, 6}: " ++ (show $ sindElementeFremd (MT3  abc3') (MT3  def3'))
 >   putStrLn ""
->   putStrLn $ "sindQuerUeberlappend           {1} {1}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 a3'))
->   putStrLn $ "sindQuerUeberlappend {1, 2, 3} {2, 1, 4}: " ++ (show $ istEchteObermenge (MT3  abc3') (MT3  bad3'))
->   putStrLn $ "sindQuerUeberlappend      {1} {1, 2}: " ++ (show $ istEchteObermenge (MT3  a3') (MT3 ab3'))
->   putStrLn $ "sindQuerUeberlappend      {1, 2} {1}: " ++ (show $ istEchteObermenge (MT3  ab3') (MT3 a3'))
+>   putStrLn $ "sindQuerUeberlappend           {1} {1}: " ++ (show $ sindQuerUeberlappend (MT3  a3') (MT3 a3'))
+>   putStrLn $ "sindQuerUeberlappend {1, 2, 3} {2, 1, 4}: " ++ (show $ sindQuerUeberlappend (MT3  abc3') (MT3  bad3'))
+>   putStrLn $ "sindQuerUeberlappend      {1} {1, 2}: " ++ (show $ sindQuerUeberlappend (MT3  a3') (MT3 ab3'))
+>   putStrLn $ "sindQuerUeberlappend      {1, 2} {1}: " ++ (show $ sindQuerUeberlappend (MT3  ab3') (MT3 a3'))
 >   putStrLn ""
 >   putStrLn ""
 >   putStrLn "------------------------------A.3------------------------------"
